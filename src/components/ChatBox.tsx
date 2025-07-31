@@ -74,8 +74,16 @@ const ChatBox: React.FC = () => {
             placeholder="Escribe tu nombre..."
           />
           <button onClick={startConnection} disabled={isConnecting}>
-            {isConnecting ? "Conectando..." : "Entrar al chat"} {/* Texto dinámico según estado */}
+            {isConnecting ? (
+              <>
+                Conectando...
+                <span className="spinner"></span>
+              </>
+            ) : (
+              "Entrar al chat"
+            )}
           </button>
+
         </div>
       ) : (
         <>
