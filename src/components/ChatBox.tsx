@@ -51,18 +51,6 @@ const ChatBox: React.FC = () => {
       ) : (
         <>
           <h2>Bienvenido, {username}</h2>
-        <button
-          style={{ marginBottom: "1rem" }}
-          onClick={async () => {
-            await connection?.stop();
-            setConnection(null);
-            setUsername("");
-            setIsConnected(false);
-            setMessages([]);
-          }}
-        >
-          Salir del chat
-        </button>
 
         <div style={{ border: "1px solid #ccc", padding: "1rem", height: "300px", overflowY: "scroll" }}>
           {messages.map((msg, idx) => (
@@ -77,6 +65,20 @@ const ChatBox: React.FC = () => {
           placeholder="Escribe un mensaje..."
         />
         <button onClick={sendMessage}>Enviar</button>
+
+        <button
+          style={{ marginBottom: "1rem" }}
+          onClick={async () => {
+            await connection?.stop();
+            setConnection(null);
+            setUsername("");
+            setIsConnected(false);
+            setMessages([]);
+          }}
+        >
+          Salir del chat
+        </button>
+
       </>
       )}
     </div>
