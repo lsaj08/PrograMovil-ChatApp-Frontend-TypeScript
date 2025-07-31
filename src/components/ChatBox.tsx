@@ -48,9 +48,23 @@ const ChatBox: React.FC = () => {
           <img
             src="/logo_ulatina.png"
             alt="Logo de Universidad Latina"
-            style={{ width: "120px", marginBottom: "1rem" }}
+            style={{ width: "800px", marginBottom: "1rem" }}
           />
-          <h1>Bienvenido a Chat PrograWeb</h1>
+          <h1>Curso: Programacion Web </h1>
+          <p>20252-002-BISI05
+            <br />
+            Profesor: Jose Arturo Gracia Rodriguez
+            <br />
+            Proyecto Final - Aplicacion de Chat
+            <h3>Equipo: Pastelito</h3>
+            <ul>
+              <li>Leiner Arce Jimenez</li>
+              <li>Diego Campos Borbon</li>
+              <li>Gabriel Barrios Benavides</li>
+              <li>Erick Villegas Aragon</li>
+            </ul>
+            <br />
+          </p>
 
           <h2>Ingresa tu nombre de usuario:</h2>
               <input
