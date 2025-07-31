@@ -3,34 +3,26 @@ import * as signalR from "@microsoft/signalr"; // Importa SignalR para manejar l
 import './Chat.css'; // Importa estilos CSS para el chat
 
 const ChatBox: React.FC = () => {
-  // Estado que guarda la conexión con SignalR
-  const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
+  const [connection, setConnection] = useState<signalR.HubConnection | null>(null); // Estado para la conexión de SignalR
+  const [messages, setMessages] = useState<string[]>([]); // Lista de mensajes en el chat
+  const [username, setUsername] = useState(""); // Nombre del usuario
+  const [message, setMessage] = useState(""); // Mensaje en curso
+  const [isConnected, setIsConnected] = useState(false); // Bandera que indica si está conectado
+  const [isConnecting, setIsConnecting] = useState(false); // Bandera para prevenir múltiples clics en "Entrar al chat"
 
-  // Lista de mensajes en el chat
-  const [messages, setMessages] = useState<string[]>([]);
-
-  // Nombre de usuario del cliente
-  const [username, setUsername] = useState("");
-
-  // Mensaje que el usuario está escribiendo
-  const [message, setMessage] = useState("");
-
-  // Indica si ya se estableció conexión con el servidor
-  const [isConnected, setIsConnected] = useState(false);
-
-  // Función que inicia la conexión al backend con SignalR
+  // Función para iniciar la conexión con el backend SignalR
   const startConnection = async () => {
-    if (!username || connection) return; // Evita duplicar conexión
+    if (!username || connection || isConnecting) return; // Evita múltiples conexiones
 
-    // Se configura la conexión con el endpoint del backend
+    setIsConnecting(true); // Marca como "conectando"
+
     const newConnection = new signalR.HubConnectionBuilder()
       .withUrl(`https://prograweb-chatapp-backend-net9.azurewebsites.net/chat?username=${encodeURIComponent(username)}`)
-      .withAutomaticReconnect() // Se reconecta automáticamente si se pierde la conexión
+      .withAutomaticReconnect()
       .build();
 
-    // Escucha los mensajes recibidos desde el backend
     newConnection.on("ReceiveMessage", (user, receivedMessage) => {
-      setMessages((prev) => [...prev, `${user}: ${receivedMessage}`]); // Agrega el mensaje al historial
+      setMessages((prev) => [...prev, `${user}: ${receivedMessage}`]); // Agrega nuevo mensaje recibido
     });
 
     try {
@@ -39,6 +31,8 @@ const ChatBox: React.FC = () => {
       setIsConnected(true); // Marca como conectado
     } catch (e) {
       console.error("Error al conectar con SignalR: ", e);
+    } finally {
+      setIsConnecting(false); // Finaliza la bandera de conexión
     }
   };
 
@@ -46,8 +40,8 @@ const ChatBox: React.FC = () => {
   const sendMessage = async () => {
     if (connection && message) {
       try {
-        await connection.invoke("SendMessage", username, message); // Invoca el método del hub
-        setMessage(""); // Limpia el campo del mensaje
+        await connection.invoke("SendMessage", username, message); // Envía el mensaje usando el hub
+        setMessage(""); // Limpia el campo de entrada
       } catch (e) {
         console.error("Error al enviar mensaje: ", e);
       }
@@ -56,20 +50,14 @@ const ChatBox: React.FC = () => {
 
   return (
     <div className="chat-container">
-      {/* Vista cuando aún no se ha conectado */}
+      {/* Si el usuario aún no está conectado */}
       {!isConnected ? (
         <div className="chat-login">
-          {/* Encabezado del proyecto */}
-          <img
-            src="/logo_ulatina.png"
-            alt="Logo de Universidad Latina"
-          />
+          <img src="/logo_ulatina.png" alt="Logo de Universidad Latina" />
           <h1>Curso: Programación Web</h1>
           <p>20252-002-BISI05
-            <br />
-            Profesor: Jose Arturo Gracia Rodriguez
-            <br />
-            Proyecto Final - Aplicación de Chat
+            <br />Profesor: Jose Arturo Gracia Rodriguez
+            <br />Proyecto Final - Aplicación de Chat
             <h3>Equipo: Pastelito</h3>
             <ul>
               <li>Leiner Arce Jimenez</li>
@@ -79,33 +67,30 @@ const ChatBox: React.FC = () => {
             </ul>
           </p>
 
-          {/* Input para ingresar el nombre de usuario */}
           <h2>Ingresa tu nombre de usuario:</h2>
           <input
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Escribe tu nombre..."
           />
-          <button onClick={startConnection}>Entrar al chat</button>
+          <button onClick={startConnection} disabled={isConnecting}>
+            {isConnecting ? "Conectando..." : "Entrar al chat"} {/* Texto dinámico según estado */}
+          </button>
         </div>
       ) : (
         <>
           <h2>Bienvenido, {username}</h2>
 
-          {/* Área donde se listan los mensajes */}
           <div className="chat-box">
             {messages.map((msg, idx) => {
-              // Extrae nombre de usuario y contenido del mensaje
               const [meta, ...contentParts] = msg.split(":");
               const messageText = contentParts.join(":").trim();
               const userFromMsg = meta.trim();
-
               const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
               const isSystem = userFromMsg === "Sistema";
               const isMe = userFromMsg === username;
 
-              // Función para asignar un color único a cada usuario
+              // Función que asigna un color único a cada usuario
               const getColorForUser = (name: string) => {
                 let hash = 0;
                 for (let i = 0; i < name.length; i++) {
@@ -144,7 +129,6 @@ const ChatBox: React.FC = () => {
             })}
           </div>
 
-          {/* Input de texto y botones */}
           <input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -156,7 +140,7 @@ const ChatBox: React.FC = () => {
           <button
             style={{ marginBottom: "1rem" }}
             onClick={async () => {
-              // Al salir, se detiene la conexión y se limpia el estado
+              // Finaliza la conexión y reinicia todos los estados
               await connection?.stop();
               setConnection(null);
               setUsername("");
