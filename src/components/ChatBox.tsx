@@ -43,11 +43,25 @@ const ChatBox: React.FC = () => {
   return (
     <div style={{ padding: "2rem" }}>
       {!isConnected ? (
-        <>
+        <div style={{ textAlign: "center" }}>
+          
+          <img
+            src="/logo_ulatina.png"
+            alt="Logo de Universidad Latina"
+            style={{ width: "120px", marginBottom: "1rem" }}
+          />
+          <h1>Bienvenido a Chat PrograWeb</h1>
+
           <h2>Ingresa tu nombre de usuario:</h2>
-          <input value={username} onChange={(e) => setUsername(e.target.value)} />
+              <input
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Escribe tu nombre..."
+                style={{ marginRight: "0.5rem" }}
+              />
+          
           <button onClick={startConnection}>Entrar al chat</button>
-        </>
+        </div>
       ) : (
         <>
           <h2>Bienvenido, {username}</h2>
@@ -65,7 +79,7 @@ const ChatBox: React.FC = () => {
           placeholder="Escribe un mensaje..."
         />
         <button onClick={sendMessage}>Enviar</button>
-
+          <br />
         <button
           style={{ marginBottom: "1rem" }}
           onClick={async () => {
