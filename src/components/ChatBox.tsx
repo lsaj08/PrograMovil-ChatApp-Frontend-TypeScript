@@ -1,65 +1,75 @@
-import React, { useState } from "react";
-import * as signalR from "@microsoft/signalr";
+import React, { useState } from "react"; // Importa React y useState para manejar el estado del componente
+import * as signalR from "@microsoft/signalr"; // Importa SignalR para manejar la comunicación en tiempo real
+import './Chat.css'; // Importa estilos CSS para el chat
 
-// Componente principal del chat
 const ChatBox: React.FC = () => {
-  // Estado para guardar la conexión a SignalR
+  // Estado que guarda la conexión con SignalR
   const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
 
-  // Lista de mensajes recibidos en el chat
+  // Lista de mensajes en el chat
   const [messages, setMessages] = useState<string[]>([]);
 
-  // Nombre del usuario que se conecta al chat
+  // Nombre de usuario del cliente
   const [username, setUsername] = useState("");
 
-  // Mensaje que está escribiendo el usuario
+  // Mensaje que el usuario está escribiendo
   const [message, setMessage] = useState("");
 
-  // Estado que indica si el usuario ya está conectado al chat
+  // Indica si ya se estableció conexión con el servidor
   const [isConnected, setIsConnected] = useState(false);
 
-  // Función para iniciar la conexión con SignalR
+  // Función que inicia la conexión al backend con SignalR
   const startConnection = async () => {
-    if (!username || connection) return;
+    if (!username || connection) return; // Evita duplicar conexión
 
-    // Crear una nueva conexión al Hub de SignalR con el nombre de usuario
+    // Se configura la conexión con el endpoint del backend
     const newConnection = new signalR.HubConnectionBuilder()
       .withUrl(`https://prograweb-chatapp-backend-net9.azurewebsites.net/chat?username=${encodeURIComponent(username)}`)
-      .withAutomaticReconnect() // Si se pierde la conexión, intenta reconectar automáticamente
+      .withAutomaticReconnect() // Se reconecta automáticamente si se pierde la conexión
       .build();
 
-    // Maneja los mensajes entrantes del servidor
+    // Escucha los mensajes recibidos desde el backend
     newConnection.on("ReceiveMessage", (user, receivedMessage) => {
-      setMessages((prev) => [...prev, `${user}: ${receivedMessage}`]);
+      setMessages((prev) => [...prev, `${user}: ${receivedMessage}`]); // Agrega el mensaje al historial
     });
 
     try {
-      // Iniciar la conexión
-      await newConnection.start();
+      await newConnection.start(); // Inicia la conexión
       setConnection(newConnection);
-      setIsConnected(true);
+      setIsConnected(true); // Marca como conectado
     } catch (e) {
       console.error("Error al conectar con SignalR: ", e);
     }
   };
 
-    return (
-    <div style={{ padding: "2rem" }}>
-      {/* Vista antes de conectarse */}
+  // Función para enviar un mensaje al backend
+  const sendMessage = async () => {
+    if (connection && message) {
+      try {
+        await connection.invoke("SendMessage", username, message); // Invoca el método del hub
+        setMessage(""); // Limpia el campo del mensaje
+      } catch (e) {
+        console.error("Error al enviar mensaje: ", e);
+      }
+    }
+  };
+
+  return (
+    <div className="chat-container">
+      {/* Vista cuando aún no se ha conectado */}
       {!isConnected ? (
-        <div style={{ textAlign: "center" }}>
-          {/* Logo y encabezado de la app */}
+        <div className="chat-login">
+          {/* Encabezado del proyecto */}
           <img
             src="/logo_ulatina.png"
             alt="Logo de Universidad Latina"
-            style={{ width: "800px", marginBottom: "1rem" }}
           />
-          <h1>Curso: Programacion Web </h1>
+          <h1>Curso: Programación Web</h1>
           <p>20252-002-BISI05
             <br />
             Profesor: Jose Arturo Gracia Rodriguez
             <br />
-            Proyecto Final - Aplicacion de Chat
+            Proyecto Final - Aplicación de Chat
             <h3>Equipo: Pastelito</h3>
             <ul>
               <li>Leiner Arce Jimenez</li>
@@ -67,37 +77,35 @@ const ChatBox: React.FC = () => {
               <li>Gabriel Barrios Benavides</li>
               <li>Erick Villegas Aragon</li>
             </ul>
-            <br />
           </p>
 
-          {/* Campo para ingresar nombre de usuario */}
+          {/* Input para ingresar el nombre de usuario */}
           <h2>Ingresa tu nombre de usuario:</h2>
           <input
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Escribe tu nombre..."
-            style={{ marginRight: "0.5rem" }}
           />
           <button onClick={startConnection}>Entrar al chat</button>
         </div>
       ) : (
-        // Vista después de conectarse
         <>
           <h2>Bienvenido, {username}</h2>
 
-          {/* Área de mensajes */}
-          <div style={{ border: "1px solid #ccc", padding: "1rem", height: "300px", overflowY: "scroll" }}>
-            {/* Recorrido de mensajes */}
+          {/* Área donde se listan los mensajes */}
+          <div className="chat-box">
             {messages.map((msg, idx) => {
+              // Extrae nombre de usuario y contenido del mensaje
               const [meta, ...contentParts] = msg.split(":");
-              const messageText = contentParts.join(":").trim(); // Contenido del mensaje
-              const userFromMsg = meta.trim(); // Nombre del remitente
-              const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // Hora del mensaje
+              const messageText = contentParts.join(":").trim();
+              const userFromMsg = meta.trim();
 
-              const isSystem = userFromMsg === "Sistema"; // Mensaje del sistema
-              const isMe = userFromMsg === username; // Mensaje propio
+              const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-              // Función para generar un color por usuario
+              const isSystem = userFromMsg === "Sistema";
+              const isMe = userFromMsg === username;
+
+              // Función para asignar un color único a cada usuario
               const getColorForUser = (name: string) => {
                 let hash = 0;
                 for (let i = 0; i < name.length; i++) {
@@ -109,28 +117,9 @@ const ChatBox: React.FC = () => {
               return (
                 <div
                   key={idx}
-                  style={{
-                    marginBottom: "1rem",
-                    padding: "0.5rem 1rem",
-                    borderRadius: "10px",
-                    maxWidth: "70%",
-                    marginLeft: isMe ? "auto" : 0,
-                    backgroundColor: isSystem ? "#f0f0f0" : isMe ? "#d1e7dd" : "#e7f3ff",
-                    textAlign: isMe ? "right" : "left"
-                  }}
+                  className={`chat-message ${isSystem ? "system" : isMe ? "me" : ""}`}
                 >
-                  <div
-                    style={{
-                      fontSize: "0.75rem",
-                      color: "#444",
-                      marginBottom: "0.3rem",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: isMe ? "flex-end" : "flex-start",
-                      gap: "0.4rem"
-                    }}
-                  >
-                    {/* Encabezado del mensaje (usuario y hora) */}
+                  <div className={`chat-meta ${isMe ? "right" : "left"}`}>
                     {isSystem ? (
                       <>
                         <span>🛠 <strong>{userFromMsg}</strong></span>
@@ -140,13 +129,8 @@ const ChatBox: React.FC = () => {
                       <>
                         {!isMe && (
                           <span
-                            style={{
-                              display: "inline-block",
-                              width: "12px",
-                              height: "12px",
-                              borderRadius: "50%",
-                              backgroundColor: getColorForUser(userFromMsg)
-                            }}
+                            className="chat-color-dot"
+                            style={{ backgroundColor: getColorForUser(userFromMsg) }}
                           ></span>
                         )}
                         <span><strong>{userFromMsg}</strong></span>
@@ -154,14 +138,13 @@ const ChatBox: React.FC = () => {
                       </>
                     )}
                   </div>
-                  {/* Contenido del mensaje */}
                   <div>{messageText}</div>
                 </div>
               );
             })}
           </div>
 
-          {/* Input y botones de enviar/salir */}
+          {/* Input de texto y botones */}
           <input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -173,7 +156,7 @@ const ChatBox: React.FC = () => {
           <button
             style={{ marginBottom: "1rem" }}
             onClick={async () => {
-              // Al salir, cerrar conexión y reiniciar estado
+              // Al salir, se detiene la conexión y se limpia el estado
               await connection?.stop();
               setConnection(null);
               setUsername("");
