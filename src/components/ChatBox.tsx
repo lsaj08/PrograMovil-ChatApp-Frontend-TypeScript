@@ -83,42 +83,68 @@ const ChatBox: React.FC = () => {
         <div style={{ border: "1px solid #ccc", padding: "1rem", height: "300px", overflowY: "scroll" }}>
           
 {messages.map((msg, idx) => {
-  // Separa el mensaje en "usuario: mensaje"
   const [meta, ...contentParts] = msg.split(":");
   const messageText = contentParts.join(":").trim();
-  const usernameFromMsg = meta.trim();
-
-  const isSystem = usernameFromMsg === "Sistema";
-
-  // Obtiene la hora en formato corto
+  const userFromMsg = meta.trim();
   const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  const isSystem = userFromMsg === "Sistema";
+  const isMe = userFromMsg === username;
+
+  // Función para generar un color consistente por usuario
+  const getColorForUser = (name: string) => {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const color = `hsl(${hash % 360}, 70%, 60%)`;
+    return color;
+  };
 
   return (
     <div
       key={idx}
       style={{
         marginBottom: "1rem",
-        padding: "0.5rem",
-        backgroundColor: isSystem ? "#f4f4f4" : "#e8f0fe",
-        borderRadius: "6px"
+        padding: "0.5rem 1rem",
+        borderRadius: "10px",
+        maxWidth: "70%",
+        marginLeft: isMe ? "auto" : 0,
+        backgroundColor: isSystem ? "#f0f0f0" : isMe ? "#d1e7dd" : "#e7f3ff",
+        textAlign: isMe ? "right" : "left"
       }}
     >
-      <div style={{ fontSize: "0.8rem", color: "#555", marginBottom: "0.2rem" }}>
+      <div
+        style={{
+          fontSize: "0.75rem",
+          color: "#444",
+          marginBottom: "0.3rem",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: isMe ? "flex-end" : "flex-start",
+          gap: "0.4rem"
+        }}
+      >
         {isSystem ? (
-          <>🛠 <strong>{usernameFromMsg}</strong> - {time}</>
+          <>
+            <span>🛠 <strong>{userFromMsg}</strong></span>
+            <span>{time}</span>
+          </>
         ) : (
           <>
-            <span
-              style={{
-                display: "inline-block",
-                width: "10px",
-                height: "10px",
-                borderRadius: "50%",
-                backgroundColor: "#0078D7",
-                marginRight: "6px"
-              }}
-            ></span>
-            <strong>{usernameFromMsg}</strong> - {time}
+            {!isMe && (
+              <span
+                style={{
+                  display: "inline-block",
+                  width: "12px",
+                  height: "12px",
+                  borderRadius: "50%",
+                  backgroundColor: getColorForUser(userFromMsg)
+                }}
+              ></span>
+            )}
+            <span><strong>{userFromMsg}</strong></span>
+            <span>{time}</span>
           </>
         )}
       </div>
@@ -126,7 +152,6 @@ const ChatBox: React.FC = () => {
     </div>
   );
 })}
-
 
         </div>
 
