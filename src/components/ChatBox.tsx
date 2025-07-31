@@ -81,9 +81,53 @@ const ChatBox: React.FC = () => {
           <h2>Bienvenido, {username}</h2>
 
         <div style={{ border: "1px solid #ccc", padding: "1rem", height: "300px", overflowY: "scroll" }}>
-          {messages.map((msg, idx) => (
-            <div key={idx}>{msg}</div>
-          ))}
+          
+{messages.map((msg, idx) => {
+  // Separa el mensaje en "usuario: mensaje"
+  const [meta, ...contentParts] = msg.split(":");
+  const messageText = contentParts.join(":").trim();
+  const usernameFromMsg = meta.trim();
+
+  const isSystem = usernameFromMsg === "Sistema";
+
+  // Obtiene la hora en formato corto
+  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  return (
+    <div
+      key={idx}
+      style={{
+        marginBottom: "1rem",
+        padding: "0.5rem",
+        backgroundColor: isSystem ? "#f4f4f4" : "#e8f0fe",
+        borderRadius: "6px"
+      }}
+    >
+      <div style={{ fontSize: "0.8rem", color: "#555", marginBottom: "0.2rem" }}>
+        {isSystem ? (
+          <>🛠 <strong>{usernameFromMsg}</strong> - {time}</>
+        ) : (
+          <>
+            <span
+              style={{
+                display: "inline-block",
+                width: "10px",
+                height: "10px",
+                borderRadius: "50%",
+                backgroundColor: "#0078D7",
+                marginRight: "6px"
+              }}
+            ></span>
+            <strong>{usernameFromMsg}</strong> - {time}
+          </>
+        )}
+      </div>
+      <div>{messageText}</div>
+    </div>
+  );
+})}
+
+
         </div>
 
         <input
