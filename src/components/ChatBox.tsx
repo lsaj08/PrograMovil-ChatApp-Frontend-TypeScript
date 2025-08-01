@@ -58,14 +58,15 @@ const ChatBox: React.FC = () => {
           <p>20252-002-BISI05
             <br />Profesor: Jose Arturo Gracia Rodriguez
             <br />Proyecto Final - Aplicación de Chat v3.2
-            <h3>Equipo: Pastelito</h3>
+          </p>
+          <h3>Equipo: Pastelito</h3>
             <ul>
               <li>Leiner Arce Jimenez</li>
               <li>Diego Campos Borbon</li>
               <li>Gabriel Barrios Benavides</li>
               <li>Erick Villegas Aragon</li>
             </ul>
-          </p>
+          
 
           <h2>Ingresa tu nombre de usuario:</h2>
           <input

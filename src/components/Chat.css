@@ -6,6 +6,14 @@
   text-align: center;
 }
 
+.chat-login ul {
+  display: inline-block; /* Esto permite que la lista se centre dentro del contenedor centrado */
+  text-align: left;      /* Asegura que los ítems estén alineados a la izquierda dentro del bloque */
+  padding-left: 1.5rem;
+  list-style-type: disc;
+}
+
+
 .chat-login img {
   width: 800px;
   margin-bottom: 1rem;
