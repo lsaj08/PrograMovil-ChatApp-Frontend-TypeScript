@@ -151,6 +151,13 @@ const ChatBox: React.FC = () => {
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             placeholder="Escribe un mensaje..."
           />
+          <button
+            onClick={sendMessage}
+            className="btn-chat btn-send"
+          > Enviar
+            <img src="/sent.png" alt="icono enviar" />
+          </button>
+
           <br /><br />
           <button
             className="btn-chat btn-logout"

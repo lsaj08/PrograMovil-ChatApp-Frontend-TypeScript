@@ -113,3 +113,14 @@
 .btn-logout:hover {
   background-color: #ffd6d6;
 }
+
+.btn-send {
+  margin-top: 1rem;
+  background-color: #e1f5fe;
+  border: 1px solid #81d4fa;
+  color: #0277bd;
+}
+
+.btn-send:hover {
+  background-color: #b3e5fc;
+}
