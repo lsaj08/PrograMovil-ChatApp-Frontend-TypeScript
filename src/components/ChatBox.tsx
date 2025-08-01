@@ -57,7 +57,7 @@ const ChatBox: React.FC = () => {
           <h1>Curso: Programación Web</h1>
           <p>20252-002-BISI05
             <br />Profesor: Jose Arturo Gracia Rodriguez
-            <br />Proyecto Final - Aplicación de Chat
+            <br />Proyecto Final - Aplicación de Chat v3.2
             <h3>Equipo: Pastelito</h3>
             <ul>
               <li>Leiner Arce Jimenez</li>
@@ -73,14 +73,22 @@ const ChatBox: React.FC = () => {
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Escribe tu nombre..."
           />
-          <button onClick={startConnection} disabled={isConnecting}>
+          <br /><br />
+          <button
+            onClick={startConnection}
+            disabled={isConnecting}
+            className="btn-chat"
+          >
             {isConnecting ? (
               <>
                 Conectando...
                 <span className="spinner"></span>
               </>
             ) : (
-              "Entrar al chat"
+              <>
+                Entrar al chat
+                <img src="/login.png" alt="icono login" />
+              </>
             )}
           </button>
 
@@ -143,10 +151,9 @@ const ChatBox: React.FC = () => {
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             placeholder="Escribe un mensaje..."
           />
-          <button onClick={sendMessage}>Enviar</button>
-          <br />
+          <br /><br />
           <button
-            style={{ marginBottom: "1rem" }}
+            className="btn-chat btn-logout"
             onClick={async () => {
               // Finaliza la conexión y reinicia todos los estados
               await connection?.stop();
@@ -156,8 +163,10 @@ const ChatBox: React.FC = () => {
               setMessages([]);
             }}
           >
+            <img src="/logout.png" alt="icono logout" />
             Salir del chat
           </button>
+
         </>
       )}
     </div>

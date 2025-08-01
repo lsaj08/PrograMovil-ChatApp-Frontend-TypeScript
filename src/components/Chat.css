@@ -62,19 +62,54 @@
   border-radius: 50%;
 }
 
-.spinner {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #007bff;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  animation: spin 1s linear infinite;
-  margin-left: 10px;
-  display: inline-block;
+.btn-chat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: #f0f0f0;
+}
+
+.btn-chat:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-chat img {
+  width: 20px;
+  height: 20px;
   vertical-align: middle;
 }
 
+/* Spinner mientras conecta */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 3px solid #ccc;
+  border-top: 3px solid #4caf50;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-left: 6px;
+}
+
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.btn-logout {
+  margin-top: 1rem;
+  background-color: #ffeaea;
+  border: 1px solid #cc0000;
+  color: #cc0000;
+}
+
+.btn-logout:hover {
+  background-color: #ffd6d6;
 }
