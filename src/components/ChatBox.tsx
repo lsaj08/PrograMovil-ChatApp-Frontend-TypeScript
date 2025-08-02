@@ -9,6 +9,7 @@ const ChatBox: React.FC = () => {
   const [message, setMessage] = useState(""); // Mensaje en curso
   const [isConnected, setIsConnected] = useState(false); // Marca si el usuario está en el chat
   const [isConnecting, setIsConnecting] = useState(false); // Evita conexiones duplicadas
+  const [onlineUsers, setOnlineUsers] = useState(0); // Cantidad de usuarios conectados
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null); // Referencia al final del contenedor de mensajes
 
@@ -31,6 +32,11 @@ const ChatBox: React.FC = () => {
     // Manejador de mensajes recibidos
     newConnection.on("ReceiveMessage", (user, receivedMessage) => {
       setMessages((prev) => [...prev, `${user}: ${receivedMessage}`]);
+    });
+
+    // Recibir cantidad de usuarios conectados
+    newConnection.on("UpdateUserCount", (count) => {
+      setOnlineUsers(count);
     });
 
     try {
@@ -109,6 +115,7 @@ const ChatBox: React.FC = () => {
         // Pantalla de chat
         <>
           <h2>Bienvenido, {username}</h2>
+          <h2>Usuarios en línea: {onlineUsers}</h2>
 
           <div className="chat-box">
             {messages.map((msg, idx) => {
