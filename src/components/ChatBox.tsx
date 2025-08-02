@@ -114,8 +114,8 @@ const ChatBox: React.FC = () => {
       ) : (
         // Pantalla de chat
         <>
-          <h2>Bienvenido, {username}</h2>
-          <h2>Usuarios en línea: {onlineUsers}</h2>
+          <h1>Bienvenido, {username}</h1>
+          <h3>Usuarios en línea: {onlineUsers}</h3>
 
           <div className="chat-box">
             {messages.map((msg, idx) => {
@@ -175,7 +175,7 @@ const ChatBox: React.FC = () => {
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             placeholder="Escribe un mensaje..."
-          />
+          />  
           <button
             onClick={sendMessage}
             className="btn-chat btn-send"
