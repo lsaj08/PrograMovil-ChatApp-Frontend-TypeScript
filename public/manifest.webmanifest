@@ -1,6 +1,7 @@
 {
   "short_name": "Chat App",
   "name": "Chat App - Progra Web - ULatina",
+  "lang": "es-CR",
   "icons": [
     {
       "src": "favicon.ico",
@@ -19,7 +20,9 @@
     }
   ],
   "start_url": ".",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "theme_color": "#000000",
   "background_color": "#ffffff"
 }
