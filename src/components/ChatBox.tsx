@@ -1,72 +1,90 @@
 import React, { useState, useRef, useEffect } from "react"; // Importa React y hooks necesarios
 import * as signalR from "@microsoft/signalr"; // Cliente SignalR para comunicación en tiempo real
-import './Chat.css'; // Importa estilos CSS
+import './Chat.css'; // Importa estilos CSS personalizados
 
+// Componente principal del chat
 const ChatBox: React.FC = () => {
-  const [connection, setConnection] = useState<signalR.HubConnection | null>(null); // Almacena la conexión
-  const [messages, setMessages] = useState<string[]>([]); // Historial de mensajes
-  const [username, setUsername] = useState(""); // Nombre del usuario
-  const [message, setMessage] = useState(""); // Mensaje en curso
-  const [isConnected, setIsConnected] = useState(false); // Marca si el usuario está en el chat
-  const [isConnecting, setIsConnecting] = useState(false); // Evita conexiones duplicadas
-  const [onlineUsers, setOnlineUsers] = useState(0); // Cantidad de usuarios conectados
+  // Estado para almacenar la conexión actual con SignalR
+  const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
 
-  const messagesEndRef = useRef<HTMLDivElement | null>(null); // Referencia al final del contenedor de mensajes
+  // Lista de mensajes recibidos
+  const [messages, setMessages] = useState<string[]>([]);
 
-  // Desplaza automáticamente hacia abajo cuando llegan nuevos mensajes
+  // Estado del nombre de usuario ingresado
+  const [username, setUsername] = useState("");
+
+  // Estado del mensaje actual que está escribiendo el usuario
+  const [message, setMessage] = useState("");
+
+  // Indica si el usuario ya está conectado al chat
+  const [isConnected, setIsConnected] = useState(false);
+
+  // Estado para evitar conexiones múltiples simultáneas
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  // Número de usuarios en línea
+  const [onlineUsers, setOnlineUsers] = useState(0);
+
+  // Referencia al final del contenedor de mensajes, usada para hacer scroll automático
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  // Efecto para hacer scroll automático al final cuando cambia la lista de mensajes
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Conecta al servidor de SignalR
+  // Función para iniciar la conexión con el servidor SignalR
   const startConnection = async () => {
+    // Validación: si ya hay conexión, está conectando o no hay nombre, no hace nada
     if (!username || connection || isConnecting) return;
 
-    setIsConnecting(true); // Activar indicador de conexión
+    setIsConnecting(true); // Activa indicador de "conectando"
 
+    // Construye la conexión con el backend, incluyendo el nombre de usuario en la URL
     const newConnection = new signalR.HubConnectionBuilder()
       .withUrl(`https://prograweb-chatapp-backend-net9.azurewebsites.net/chat?username=${encodeURIComponent(username)}`)
       .withAutomaticReconnect()
       .build();
 
-    // Manejador de mensajes recibidos
+    // Evento: al recibir un mensaje desde el servidor
     newConnection.on("ReceiveMessage", (user, receivedMessage) => {
       setMessages((prev) => [...prev, `${user}: ${receivedMessage}`]);
     });
 
-    // Recibir cantidad de usuarios conectados
+    // Evento: al actualizarse el número de usuarios conectados
     newConnection.on("UpdateUserCount", (count) => {
       setOnlineUsers(count);
     });
 
+    // Intenta iniciar la conexión
     try {
-      await newConnection.start(); // Inicia conexión
+      await newConnection.start();
       setConnection(newConnection);
       setIsConnected(true);
     } catch (e) {
       console.error("Error al conectar con SignalR:", e);
     } finally {
-      setIsConnecting(false);
+      setIsConnecting(false); // Termina el estado de conexión
     }
   };
 
-  // Envía mensaje al servidor
+  // Envía un mensaje al servidor usando la conexión actual
   const sendMessage = async () => {
     if (connection && message) {
       try {
         await connection.invoke("SendMessage", username, message);
-        setMessage(""); // Limpia input
+        setMessage(""); // Limpia el input de mensaje
       } catch (e) {
         console.error("Error al enviar mensaje:", e);
       }
     }
   };
 
-  // Devuelve estructura visual
+  // Renderizado del componente
   return (
     <div className="chat-container">
+      {/* Si NO está conectado aún, muestra pantalla de login */}
       {!isConnected ? (
-        // Pantalla de login
         <div className="chat-login">
           <img src="/logo_ulatina.png" alt="Logo de Universidad Latina" />
           <h1>Curso: Programación Web</h1>
@@ -83,12 +101,15 @@ const ChatBox: React.FC = () => {
             <li>Erick Villegas Aragon</li>
           </ul>
 
-          {/* Campo para ingresar el nombre */}
+          {/* Campo para ingresar el nombre de usuario */}
           <h2>Ingresa tu nombre de usuario:</h2>
           <input
+            id="username" // Para accesibilidad y autocompletado
+            name="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Escribe tu nombre..."
+            autoComplete="username"
           />
 
           {/* Botón para iniciar sesión */}
@@ -97,6 +118,7 @@ const ChatBox: React.FC = () => {
             onClick={startConnection}
             disabled={isConnecting}
             className="btn-chat"
+            type="button" // Para evitar comportamiento por defecto en formularios
           >
             {isConnecting ? (
               <>
@@ -112,22 +134,24 @@ const ChatBox: React.FC = () => {
           </button>
         </div>
       ) : (
-        // Pantalla de chat
+        // Si está conectado, muestra el chat
         <>
           <h1>Bienvenido, {username}</h1>
           <h3>Usuarios en línea: {onlineUsers}</h3>
 
+          {/* Contenedor de mensajes del chat */}
           <div className="chat-box">
             {messages.map((msg, idx) => {
               const [meta, ...contentParts] = msg.split(":");
-              const messageText = contentParts.join(":").trim();
+              const messageText = contentParts.join(":").trim(); // Soporta mensajes con ":" incluidos
               const userFromMsg = meta.trim();
+
               const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-              const isSystem = userFromMsg === "Sistema";
-              const isMe = userFromMsg === username;
+              const isSystem = userFromMsg === "Sistema"; // Si es mensaje del sistema
+              const isMe = userFromMsg === username; // Si soy yo
 
-              // Genera color único por usuario
+              // Genera un color único para cada usuario según su nombre
               const getColorForUser = (name: string) => {
                 let hash = 0;
                 for (let i = 0; i < name.length; i++) {
@@ -141,6 +165,7 @@ const ChatBox: React.FC = () => {
                   key={idx}
                   className={`chat-message ${isSystem ? "system" : isMe ? "me" : ""}`}
                 >
+                  {/* Información del mensaje (quién y a qué hora) */}
                   <div className={`chat-meta ${isMe ? "right" : "left"}`}>
                     {isSystem ? (
                       <>
@@ -165,20 +190,26 @@ const ChatBox: React.FC = () => {
               );
             })}
 
-            {/* Referencia para scroll automático al último mensaje */}
+            {/* Referencia al final de los mensajes, para scroll automático */}
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Campo y botón para enviar mensaje */}
+          {/* Campo de entrada de mensaje */}
           <input
+            id="message" // Mejora accesibilidad
+            name="message"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             placeholder="Escribe un mensaje..."
-          />  
+            autoComplete="off"
+          />
+
+          {/* Botón de enviar mensaje */}
           <button
             onClick={sendMessage}
             className="btn-chat btn-send"
+            type="button"
           >
             Enviar
             <img src="/sent.png" alt="icono enviar" />
@@ -195,13 +226,14 @@ const ChatBox: React.FC = () => {
               setIsConnected(false);
               setMessages([]);
             }}
+            type="button"
           >
             <img src="/logout.png" alt="icono logout" />
             Salir del chat
           </button>
         </>
       )}
-    </div> // ← Cierre correcto del div contenedor principal
+    </div>
   );
 };
 
