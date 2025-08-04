@@ -91,7 +91,7 @@ const ChatBox: React.FC = () => {
           <p>
             20252-002-BISI05 <br />
             Profesor: Jose Arturo Gracia Rodriguez <br />
-            Proyecto Final - Aplicación de Chat v3.2
+            Proyecto Final - Aplicación de Chat v3.3
           </p>
           <h3>Equipo: Pastelito</h3>
           <ul>
