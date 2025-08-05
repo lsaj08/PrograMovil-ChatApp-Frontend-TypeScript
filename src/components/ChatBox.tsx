@@ -170,7 +170,9 @@ const ChatBox: React.FC = () => {
 
 
               // Genera un color único para cada usuario según su nombre
-              const getColorForUser = (name: string) => {
+              const getColorForUser = (name?: string) => {
+                if (!name) return "#999"; // Color por defecto si el nombre es inválido
+
                 let hash = 0;
                 for (let i = 0; i < name.length; i++) {
                   hash = name.charCodeAt(i) + ((hash << 5) - hash);
