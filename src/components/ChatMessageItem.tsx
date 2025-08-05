@@ -1,22 +1,24 @@
+// ChatMessageItem.tsx
 import React from "react";
 
-// ✅ Definición del tipo de mensaje
-export interface ChatMessage {
+interface ChatMessage {
   user: string;
   message: string;
   timestamp: string;
 }
 
-// ✅ Props esperadas para renderizar un mensaje
-interface ChatMessageItemProps {
+interface Props {
   msg: ChatMessage;
-  username: string; // El usuario actual (para saber si soy yo)
+  username: string;
 }
 
-const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, username }) => {
+/**
+ * Componente para renderizar un mensaje individual del chat
+ * Aplica estilos condicionales dependiendo si el mensaje es del sistema o del usuario actual
+ */
+const ChatMessageItem: React.FC<Props> = ({ msg, username }) => {
   const { user, message, timestamp } = msg;
 
-  // Validar timestamp
   const date = new Date(timestamp);
   const isValidDate = !isNaN(date.getTime());
 
@@ -27,7 +29,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, username }) => {
   const isSystem = user === "Sistema";
   const isMe = user === username;
 
-  // 🎨 Color único por usuario
+  // Color único por usuario
   const getColorForUser = (name?: string) => {
     if (!name) return "#999";
     let hash = 0;
@@ -54,9 +56,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ msg, username }) => {
         )}
         <span style={{ marginLeft: 8 }}>{time}</span>
       </div>
-      <div style={{ fontSize: "1em", fontWeight: isSystem ? 500 : 400 }}>
-        {message}
-      </div>
+      <div style={{ fontSize: "1em", fontWeight: isSystem ? 500 : 400 }}>{message}</div>
     </div>
   );
 };
