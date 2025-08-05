@@ -156,59 +156,54 @@ const ChatBox: React.FC = () => {
 
           {/* Contenedor de mensajes del chat */}
           <div className="chat-box">
-              {messages.map((msg, idx) => {
-                const { user, message, timestamp } = msg;
+          {messages.map((msg, idx) => {
+            const { user, message, timestamp } = msg;
 
-                const time = new Date(timestamp).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: true, // si quieres formato AM/PM
-                });
+            // Validación de timestamp
+            const date = new Date(timestamp);
+            const isValidDate = !isNaN(date.getTime());
 
-                const isSystem = user === "Sistema";
-                const isMe = user === username;
+            const time = isValidDate
+              ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+              : "--:--";
 
+            const isSystem = user === "Sistema";
+            const isMe = user === username;
 
-              // Genera un color único para cada usuario según su nombre
-              const getColorForUser = (name?: string) => {
-                if (!name) return "#999"; // Color por defecto si el nombre es inválido
+            // Color único por usuario
+            const getColorForUser = (name?: string) => {
+              if (!name) return "#999";
+              let hash = 0;
+              for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+              }
+              return `hsl(${hash % 360}, 70%, 60%)`;
+            };
 
-                let hash = 0;
-                for (let i = 0; i < name.length; i++) {
-                  hash = name.charCodeAt(i) + ((hash << 5) - hash);
-                }
-                return `hsl(${hash % 360}, 70%, 60%)`;
-              };
-
-              return (
-                <div
-                  key={idx}
-                  className={`chat-message ${isSystem ? "system" : isMe ? "me" : ""}`}
-                >
-                  {/* Información del mensaje (quién y a qué hora) */}
-                  <div className={`chat-meta ${isMe ? "right" : "left"}`}>
-                    {isSystem ? (
-                      <>
-                        <span>🛠 <strong>{user}</strong></span>
-                        <span>{time}</span>
-                      </>
-                    ) : (
-                      <>
-                        {!isMe && (
-                          <span
-                            className="chat-color-dot"
-                            style={{ backgroundColor: getColorForUser(user) }}
-                          ></span>
-                        )}
-                        <span><strong>{user}</strong></span>
-                        <span>{time}</span>
-                      </>
-                    )}
-                  </div>
-                  <div>{message}</div>
+            return (
+              <div
+                key={idx}
+                style={{
+                  backgroundColor: isMe ? "#e0f7ff" : isSystem ? "#f0f0f0" : "#ffffff",
+                  padding: "8px 12px",
+                  margin: "6px 0",
+                  borderRadius: "8px",
+                  textAlign: isMe ? "right" : "left",
+                  border: isSystem ? "1px dashed #aaa" : "none",
+                }}
+              >
+                <div style={{ fontSize: "0.85em", color: "#666" }}>
+                  {!isSystem && (
+                    <span style={{ color: getColorForUser(user), fontWeight: 600 }}>{user}</span>
+                  )}
+                  <span style={{ marginLeft: 8 }}>{time}</span>
                 </div>
-              );
-            })}
+                <div style={{ fontSize: "1em", fontWeight: isSystem ? 500 : 400 }}>
+                  {message}
+                </div>
+              </div>
+            );
+          })}
 
             {/* Referencia al final de los mensajes, para scroll automático */}
             <div ref={messagesEndRef} />
