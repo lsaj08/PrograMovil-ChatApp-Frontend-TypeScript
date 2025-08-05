@@ -8,7 +8,13 @@ const ChatBox: React.FC = () => {
   const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
 
   // Lista de mensajes recibidos
-  const [messages, setMessages] = useState<string[]>([]);
+  interface ChatMessage {
+  user: string;
+  message: string;
+  timestamp: string;
+  }
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+
 
   // Estado del nombre de usuario ingresado
   const [username, setUsername] = useState("");
@@ -47,8 +53,17 @@ const ChatBox: React.FC = () => {
       .build();
 
     // Evento: al recibir un mensaje desde el servidor
-    newConnection.on("ReceiveMessage", (user, receivedMessage) => {
-      setMessages((prev) => [...prev, `${user}: ${receivedMessage}`]);
+    newConnection.on("ReceiveMessage", (data) => {
+      const { user, message, fechaHoraCostaRica } = data;
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          user,
+          message,
+          timestamp: fechaHoraCostaRica
+        }
+      ]);
     });
 
     // Evento: al actualizarse el número de usuarios conectados
@@ -141,15 +156,18 @@ const ChatBox: React.FC = () => {
 
           {/* Contenedor de mensajes del chat */}
           <div className="chat-box">
-            {messages.map((msg, idx) => {
-              const [meta, ...contentParts] = msg.split(":");
-              const messageText = contentParts.join(":").trim(); // Soporta mensajes con ":" incluidos
-              const userFromMsg = meta.trim();
+              {messages.map((msg, idx) => {
+                const { user, message, timestamp } = msg;
 
-              const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const time = new Date(timestamp).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true, // si quieres formato AM/PM
+                });
 
-              const isSystem = userFromMsg === "Sistema"; // Si es mensaje del sistema
-              const isMe = userFromMsg === username; // Si soy yo
+                const isSystem = user === "Sistema";
+                const isMe = user === username;
+
 
               // Genera un color único para cada usuario según su nombre
               const getColorForUser = (name: string) => {
@@ -169,7 +187,7 @@ const ChatBox: React.FC = () => {
                   <div className={`chat-meta ${isMe ? "right" : "left"}`}>
                     {isSystem ? (
                       <>
-                        <span>🛠 <strong>{userFromMsg}</strong></span>
+                        <span>🛠 <strong>{user}</strong></span>
                         <span>{time}</span>
                       </>
                     ) : (
@@ -177,15 +195,15 @@ const ChatBox: React.FC = () => {
                         {!isMe && (
                           <span
                             className="chat-color-dot"
-                            style={{ backgroundColor: getColorForUser(userFromMsg) }}
+                            style={{ backgroundColor: getColorForUser(user) }}
                           ></span>
                         )}
-                        <span><strong>{userFromMsg}</strong></span>
+                        <span><strong>{user}</strong></span>
                         <span>{time}</span>
                       </>
                     )}
                   </div>
-                  <div>{messageText}</div>
+                  <div>{message}</div>
                 </div>
               );
             })}
