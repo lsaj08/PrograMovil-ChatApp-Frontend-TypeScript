@@ -1,253 +1,115 @@
-import React, { useState, useRef, useEffect } from "react"; // Importa React y hooks necesarios
-import * as signalR from "@microsoft/signalr"; // Cliente SignalR para comunicación en tiempo real
-import './Chat.css'; // Importa estilos CSS personalizados
+import React, { useEffect, useState } from "react";
+import { HubConnectionBuilder } from "@microsoft/signalr";
+import ChatMessageItem, { ChatMessage } from "./ChatMessageItem";
 
-// Componente principal del chat
+// 🎯 Componente principal del chat
 const ChatBox: React.FC = () => {
-  // Estado para almacenar la conexión actual con SignalR
-  const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
-
-  // Lista de mensajes recibidos
-  interface ChatMessage {
-  user: string;
-  message: string;
-  timestamp: string;
-  }
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [connection, setConnection] = useState<any>(null);
+  const [messageInput, setMessageInput] = useState("");
+  const [username, setUsername] = useState("Estudiante");
 
-
-  // Estado del nombre de usuario ingresado
-  const [username, setUsername] = useState("");
-
-  // Estado del mensaje actual que está escribiendo el usuario
-  const [message, setMessage] = useState("");
-
-  // Indica si el usuario ya está conectado al chat
-  const [isConnected, setIsConnected] = useState(false);
-
-  // Estado para evitar conexiones múltiples simultáneas
-  const [isConnecting, setIsConnecting] = useState(false);
-
-  // Número de usuarios en línea
-  const [onlineUsers, setOnlineUsers] = useState(0);
-
-  // Referencia al final del contenedor de mensajes, usada para hacer scroll automático
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
-  // Efecto para hacer scroll automático al final cuando cambia la lista de mensajes
+  // 🔌 Conexión a SignalR
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  // Función para iniciar la conexión con el servidor SignalR
-  const startConnection = async () => {
-    // Validación: si ya hay conexión, está conectando o no hay nombre, no hace nada
-    if (!username || connection || isConnecting) return;
-
-    setIsConnecting(true); // Activa indicador de "conectando"
-
-    // Construye la conexión con el backend, incluyendo el nombre de usuario en la URL
-    const newConnection = new signalR.HubConnectionBuilder()
-      .withUrl(`https://prograweb-chatapp-backend-net9.azurewebsites.net/chat?username=${encodeURIComponent(username)}`)
+    const newConnection = new HubConnectionBuilder()
+      .withUrl("/chatHub?username=" + username)
       .withAutomaticReconnect()
       .build();
 
-    // Evento: al recibir un mensaje desde el servidor
-    newConnection.on("ReceiveMessage", (data) => {
-      const { user, message, fechaHoraCostaRica } = data;
+    setConnection(newConnection);
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          user,
-          message,
-          timestamp: fechaHoraCostaRica
-        }
-      ]);
-    });
+    return () => {
+      newConnection.stop();
+    };
+  }, [username]);
 
-    // Evento: al actualizarse el número de usuarios conectados
-    newConnection.on("UpdateUserCount", (count) => {
-      setOnlineUsers(count);
-    });
+  // 🧠 Eventos de conexión
+  useEffect(() => {
+    if (!connection) return;
 
-    // Intenta iniciar la conexión
+    connection
+      .start()
+      .then(() => {
+        console.log("✅ Conectado a SignalR");
+
+        connection.on("ReceiveMessage", (data) => {
+          const { user, message, fechaHoraCostaRica } = data;
+
+          if (!user || !message || !fechaHoraCostaRica) {
+            console.warn("⚠️ Mensaje inválido recibido:", data);
+            return;
+          }
+
+          setMessages((prev) => [
+            ...prev,
+            {
+              user,
+              message,
+              timestamp: fechaHoraCostaRica,
+            },
+          ]);
+        });
+
+        connection.on("UpdateUserCount", (count) => {
+          console.log(`Usuarios conectados: ${count}`);
+        });
+      })
+      .catch((err) => console.error("❌ Error al conectar:", err));
+  }, [connection]);
+
+  // 🚀 Enviar mensaje
+  const handleSend = async () => {
+    if (messageInput.trim() === "" || !connection) return;
+
     try {
-      await newConnection.start();
-      setConnection(newConnection);
-      setIsConnected(true);
-    } catch (e) {
-      console.error("Error al conectar con SignalR:", e);
-    } finally {
-      setIsConnecting(false); // Termina el estado de conexión
+      await connection.invoke("SendMessage", username, messageInput);
+      setMessageInput("");
+    } catch (err) {
+      console.error("Error al enviar mensaje:", err);
     }
   };
 
-  // Envía un mensaje al servidor usando la conexión actual
-  const sendMessage = async () => {
-    if (connection && message) {
-      try {
-        await connection.invoke("SendMessage", username, message);
-        setMessage(""); // Limpia el input de mensaje
-      } catch (e) {
-        console.error("Error al enviar mensaje:", e);
-      }
-    }
-  };
-
-  // Renderizado del componente
   return (
-    <div className="chat-container">
-      {/* Si NO está conectado aún, muestra pantalla de login */}
-      {!isConnected ? (
-        <div className="chat-login">
-          <img src="/logo_ulatina.png" alt="Logo de Universidad Latina" />
-          <h1>Curso: Programación Web</h1>
-          <p>
-            20252-002-BISI05 <br />
-            Profesor: Jose Arturo Gracia Rodriguez <br />
-            Proyecto Final - Aplicación de Chat v3.6
-          </p>
-          <h3>Equipo: Pastelito</h3>
-          <ul>
-            <li>Leiner Arce Jimenez</li>
-            <li>Diego Campos Borbon</li>
-            <li>Gabriel Barrios Benavides</li>
-            <li>Erick Villegas Aragon</li>
-          </ul>
+    <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+      <h3>Chat en tiempo real</h3>
+      <div
+        style={{
+          height: "300px",
+          overflowY: "auto",
+          border: "1px solid #ddd",
+          padding: "10px",
+          borderRadius: "8px",
+          background: "#fafafa",
+        }}
+      >
+        {messages.map((msg, idx) => (
+          <ChatMessageItem key={idx} msg={msg} username={username} />
+        ))}
+      </div>
 
-          {/* Campo para ingresar el nombre de usuario */}
-          <h2>Ingresa tu nombre de usuario:</h2>
-          <input
-            id="username" // Para accesibilidad y autocompletado
-            name="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Escribe tu nombre..."
-            autoComplete="username"
-          />
-
-          {/* Botón para iniciar sesión */}
-          <br /><br />
-          <button
-            onClick={startConnection}
-            disabled={isConnecting}
-            className="btn-chat"
-            type="button" // Para evitar comportamiento por defecto en formularios
-          >
-            {isConnecting ? (
-              <>
-                Conectando...
-                <span className="spinner"></span>
-              </>
-            ) : (
-              <>
-                Entrar al chat
-                <img src="/login.png" alt="icono login" />
-              </>
-            )}
-          </button>
-        </div>
-      ) : (
-        // Si está conectado, muestra el chat
-        <>
-          <h1>Bienvenido, {username}</h1>
-          <h3>Usuarios en línea: {onlineUsers}</h3>
-
-          {/* Contenedor de mensajes del chat */}
-          <div className="chat-box">
-          {messages.map((msg, idx) => {
-            const { user, message, timestamp } = msg;
-
-            // Validación de timestamp
-            const date = new Date(timestamp);
-            const isValidDate = !isNaN(date.getTime());
-
-            const time = isValidDate
-              ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
-              : "--:--";
-
-            const isSystem = user === "Sistema";
-            const isMe = user === username;
-
-            // Color único por usuario
-            const getColorForUser = (name?: string) => {
-              if (!name) return "#999";
-              let hash = 0;
-              for (let i = 0; i < name.length; i++) {
-                hash = name.charCodeAt(i) + ((hash << 5) - hash);
-              }
-              return `hsl(${hash % 360}, 70%, 60%)`;
-            };
-
-            return (
-              <div
-                key={idx}
-                style={{
-                  backgroundColor: isMe ? "#e0f7ff" : isSystem ? "#f0f0f0" : "#ffffff",
-                  padding: "8px 12px",
-                  margin: "6px 0",
-                  borderRadius: "8px",
-                  textAlign: isMe ? "right" : "left",
-                  border: isSystem ? "1px dashed #aaa" : "none",
-                }}
-              >
-                <div style={{ fontSize: "0.85em", color: "#666" }}>
-                  {!isSystem && (
-                    <span style={{ color: getColorForUser(user), fontWeight: 600 }}>{user}</span>
-                  )}
-                  <span style={{ marginLeft: 8 }}>{time}</span>
-                </div>
-                <div style={{ fontSize: "1em", fontWeight: isSystem ? 500 : 400 }}>
-                  {message}
-                </div>
-              </div>
-            );
-          })}
-
-            {/* Referencia al final de los mensajes, para scroll automático */}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Campo de entrada de mensaje */}
-          <input
-            id="message" // Mejora accesibilidad
-            name="message"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            placeholder="Escribe un mensaje..."
-            autoComplete="off"
-          />
-
-          {/* Botón de enviar mensaje */}
-          <button
-            onClick={sendMessage}
-            className="btn-chat btn-send"
-            type="button"
-          >
-            Enviar
-            <img src="/sent.png" alt="icono enviar" />
-          </button>
-
-          {/* Botón para salir del chat */}
-          <br /><br />
-          <button
-            className="btn-chat btn-logout"
-            onClick={async () => {
-              await connection?.stop();
-              setConnection(null);
-              setUsername("");
-              setIsConnected(false);
-              setMessages([]);
-            }}
-            type="button"
-          >
-            <img src="/logout.png" alt="icono logout" />
-            Salir del chat
-          </button>
-        </>
-      )}
+      <div style={{ marginTop: "10px", display: "flex" }}>
+        <input
+          type="text"
+          placeholder="Escribe un mensaje..."
+          value={messageInput}
+          onChange={(e) => setMessageInput(e.target.value)}
+          style={{ flex: 1, padding: "8px" }}
+        />
+        <button
+          onClick={handleSend}
+          style={{
+            marginLeft: "10px",
+            background: "#00bfff",
+            color: "white",
+            padding: "8px 12px",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          Enviar
+        </button>
+      </div>
     </div>
   );
 };
