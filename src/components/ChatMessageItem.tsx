@@ -50,12 +50,17 @@ const ChatMessageItem: React.FC<Props> = ({ msg, username }) => {
         border: isSystem ? "1px dashed #aaa" : "none",
       }}
     >
-      <div style={{ fontSize: "0.85em", color: "#666" }}>
-        {!isSystem && (
-          <span style={{ color: getColorForUser(user), fontWeight: 600 }}>{user}</span>
-        )}
+        <div style={{ fontSize: "0.85em", color: "#666" }}>
+        <span
+            style={{
+            color: isSystem ? "#666" : getColorForUser(user),
+            fontWeight: 600,
+            }}
+        >
+            {user}
+        </span>
         <span style={{ marginLeft: 8 }}>{time}</span>
-      </div>
+        </div>
       <div style={{ fontSize: "1em", fontWeight: isSystem ? 500 : 400 }}>{message}</div>
     </div>
   );
