@@ -62,7 +62,7 @@ const ChatMessageItem: React.FC<Props> = ({ msg, username }) => {
    * Retorna un emoji según el contenido del mensaje del sistema
    */
   const getSystemEmoji = (msg: string): string => {
-    if (msg.includes("conectado")) return "✅";
+    if (msg.includes("conectado")) return "🤖";
     if (msg.includes("desconectado")) return "❌";
     if (msg.includes("Bienvenido")) return "👋";
     return "ℹ️";
