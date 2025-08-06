@@ -88,9 +88,9 @@ const ChatBox: React.FC = () => {
           <p>
             20252-002-BISI05 <br />
             Profesor: Jose Arturo Gracia Rodriguez <br />
-            Proyecto Final - Aplicación de Chat
-            Nombre: Talkwo
-            <img src="/Talkwo.png" alt="icono login" />
+            Proyecto Final - Aplicación de Chat <br />
+            Nombre: Talkao <br />
+            <img src="/Talkao.png" alt="icono login" />
           </p>
           <h3>Equipo: Pastelito</h3>
           <ul>
