@@ -212,3 +212,20 @@
     width: 100%;
   }
 }
+
+/* Logos - controla la escala y el comportamiento */
+.logo-ulatina {
+  width: 100%;
+  max-width: 500px; /* tamaño máximo en pantallas grandes */
+  height: auto;
+  display: block;
+  margin: 0 auto 1rem auto;
+}
+
+.logo-talkao {
+  max-width: 250px;
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}

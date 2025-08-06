@@ -83,14 +83,14 @@ const ChatBox: React.FC = () => {
       {/* Si no está conectado, se muestra la pantalla de login */}
       {!isConnected ? (
         <div className="chat-login">
-          <img src="/logo_ulatina.png" alt="Logo de Universidad Latina" />
+          <img src="/logo_ulatina.png" alt="Universidad Latina logo" className="logo-ulatina"/>
           <h1>Curso: Programación Web</h1>
           <p>
             20252-002-BISI05 <br />
             Profesor: Jose Arturo Gracia Rodriguez <br />
             Proyecto Final - Aplicación de Chat <br />
             Nombre del App: Talkao <br /><br />
-            <img src="/Talkao.png" alt="talkao logo" />
+            <img src="/Talkao.png" alt="Talkao logo" className="logo-talkao" />
           </p>
 
           <ul>
