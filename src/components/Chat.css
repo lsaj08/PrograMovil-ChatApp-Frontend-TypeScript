@@ -132,3 +132,51 @@
 .btn-send:hover {
   background-color: #b3e5fc;
 }
+
+/* 📱 Estilos responsive y ajustes para imágenes */
+
+.chat-login img {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+.chat-login img[alt="Logo de Universidad Latina"] {
+  max-width: 250px; /* Logo principal más pequeño */
+}
+
+.chat-login img[alt="talkao logo"] {
+  max-width: 180px; /* Talkao más pequeño */
+}
+
+/* 🧠 Asegurar que el contenedor responda al tamaño */
+.chat-container {
+  padding: 1rem;
+  max-width: 800px;
+  margin: auto;
+}
+
+/* 📱 Estilo responsive adicional para dispositivos pequeños */
+@media (max-width: 600px) {
+  .chat-login h1,
+  .chat-login p,
+  .chat-login h3,
+  .chat-login ul,
+  .chat-login h2 {
+    font-size: 90%;
+  }
+
+  .btn-chat {
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+
+  input[type="text"],
+  input[type="button"] {
+    font-size: 14px;
+  }
+
+  .chat-box {
+    height: 200px;
+  }
+}

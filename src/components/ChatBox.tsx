@@ -90,7 +90,7 @@ const ChatBox: React.FC = () => {
             Profesor: Jose Arturo Gracia Rodriguez <br />
             Proyecto Final - Aplicación de Chat <br />
             Nombre: Talkao <br />
-            <img src="/Talkao.png" alt="icono login" />
+            <img src="/Talkao.png" alt="talkao logo" />
           </p>
           <h3>Equipo: Pastelito</h3>
           <ul>
