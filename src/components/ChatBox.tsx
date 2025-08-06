@@ -1,4 +1,3 @@
-// ChatBox.tsx
 import React, { useState, useRef, useEffect } from "react";
 import * as signalR from "@microsoft/signalr";
 import "./Chat.css"; // Estilos globales del chat
@@ -22,12 +21,12 @@ const ChatBox: React.FC = () => {
   const [onlineUsers, setOnlineUsers] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Scroll automático al nuevo mensaje
+  // Hace scroll automático hacia el último mensaje
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Iniciar conexión con SignalR
+  // Establece la conexión con SignalR
   const startConnection = async () => {
     if (!username || connection || isConnecting) return;
     setIsConnecting(true);
@@ -37,7 +36,7 @@ const ChatBox: React.FC = () => {
       .withAutomaticReconnect()
       .build();
 
-    // Evento: mensaje recibido
+    // Maneja los mensajes recibidos del servidor
     newConnection.on("ReceiveMessage", (data) => {
       const { user, message, fechaHoraCostaRica } = data;
       setMessages((prev) => [
@@ -50,7 +49,7 @@ const ChatBox: React.FC = () => {
       ]);
     });
 
-    // Evento: actualización de usuarios conectados
+    // Actualiza el número de usuarios conectados
     newConnection.on("UpdateUserCount", (count) => {
       setOnlineUsers(count);
     });
@@ -66,7 +65,7 @@ const ChatBox: React.FC = () => {
     }
   };
 
-  // Enviar mensaje al servidor
+  // Envía un mensaje al servidor
   const sendMessage = async () => {
     if (connection && message) {
       try {
@@ -78,9 +77,10 @@ const ChatBox: React.FC = () => {
     }
   };
 
-  // Render del componente
+  // Renderizado del componente
   return (
     <div className="chat-container">
+      {/* Si no está conectado, se muestra la pantalla de login */}
       {!isConnected ? (
         <div className="chat-login">
           <img src="/logo_ulatina.png" alt="Logo de Universidad Latina" />
@@ -89,11 +89,12 @@ const ChatBox: React.FC = () => {
             20252-002-BISI05 <br />
             Profesor: Jose Arturo Gracia Rodriguez <br />
             Proyecto Final - Aplicación de Chat <br />
-            Nombre: Talkao <br />
+            Nombre del App: Talkao <br /><br />
             <img src="/Talkao.png" alt="talkao logo" />
           </p>
-          <h3>Equipo: Pastelito</h3>
+
           <ul>
+            <h3>Integrantes</h3>
             <li>Leiner Arce Jimenez</li>
             <li>Diego Campos Borbon</li>
             <li>Gabriel Barrios Benavides</li>
@@ -135,51 +136,53 @@ const ChatBox: React.FC = () => {
           <h1>Bienvenido, {username}</h1>
           <h3>Usuarios en línea: {onlineUsers}</h3>
 
+          {/* Contenedor del chat */}
           <div className="chat-box">
-            {/* Renderiza todos los mensajes usando el componente separado */}
             {messages.map((msg, idx) => (
               <ChatMessageItem key={idx} msg={msg} username={username} />
             ))}
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Campo de mensaje */}
-          <input
-            id="message"
-            name="message"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            placeholder="Escribe un mensaje..."
-            autoComplete="off"
-          />
+          {/* Campo de entrada y botón de enviar centrados */}
+          <div className="message-input-wrapper">
+            <input
+              id="message"
+              name="message"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              placeholder="Escribe un mensaje..."
+              autoComplete="off"
+            />
 
-          {/* Botón de envío */}
-          <button
-            onClick={sendMessage}
-            className="btn-chat btn-send"
-            type="button"
-          >
-            Enviar
-            <img src="/sent.png" alt="icono enviar" />
-          </button>
+            <button
+              onClick={sendMessage}
+              className="btn-chat btn-send"
+              type="button"
+            >
+              Enviar
+              <img src="/sent.png" alt="icono enviar" />
+            </button>
+          </div>
 
-          {/* Botón de salir */}
-          <br /><br />
-          <button
-            className="btn-chat btn-logout"
-            onClick={async () => {
-              await connection?.stop();
-              setConnection(null);
-              setUsername("");
-              setIsConnected(false);
-              setMessages([]);
-            }}
-            type="button"
-          >
-            <img src="/logout.png" alt="icono logout" />
-            Salir del chat
-          </button>
+          {/* Botón de cerrar sesión centrado */}
+          <div className="logout-wrapper">
+            <button
+              className="btn-chat btn-logout"
+              onClick={async () => {
+                await connection?.stop();
+                setConnection(null);
+                setUsername("");
+                setIsConnected(false);
+                setMessages([]);
+              }}
+              type="button"
+            >
+              <img src="/logout.png" alt="icono logout" />
+              Salir del chat
+            </button>
+          </div>
         </>
       )}
     </div>

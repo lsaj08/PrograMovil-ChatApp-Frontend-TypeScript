@@ -1,24 +1,40 @@
+/* ========== 1. CONTENEDOR PRINCIPAL ========== */
 .chat-container {
-  padding: 2rem;
+  padding: 1rem;
+  max-width: 800px;
+  margin: auto; /* Centra horizontalmente */
 }
 
+/* ========== 2. LOGIN (pantalla inicial) ========== */
 .chat-login {
   text-align: center;
 }
 
+/* Lista de integrantes centrada pero alineada a la izquierda */
 .chat-login ul {
-  display: inline-block; /* Esto permite que la lista se centre dentro del contenedor centrado */
-  text-align: left;      /* Asegura que los ítems estén alineados a la izquierda dentro del bloque */
+  display: inline-block;
+  text-align: left;
   padding-left: 1.5rem;
   list-style-type: disc;
 }
 
-
+/* Imágenes generales del login */
 .chat-login img {
-  width: 800px;
+  max-width: 100%;
+  height: auto;
   margin-bottom: 1rem;
 }
 
+/* Tamaños máximos específicos para los logos */
+.chat-login img[alt="Logo de Universidad Latina"] {
+  max-width: 600px;
+}
+
+.chat-login img[alt="talkao logo"] {
+  max-width: 300px;
+}
+
+/* ========== 3. CHATBOX CONTENEDOR DE MENSAJES ========== */
 .chat-box {
   border: 1px solid #ccc;
   padding: 1rem;
@@ -27,6 +43,7 @@
   margin-bottom: 1rem;
 }
 
+/* ========== 4. MENSAJES DEL CHAT ========== */
 .chat-message {
   margin-bottom: 1rem;
   padding: 0.5rem 1rem;
@@ -36,16 +53,19 @@
   text-align: left;
 }
 
+/* Mensaje del usuario actual */
 .chat-message.me {
   margin-left: auto;
   background-color: #d1e7dd;
   text-align: right;
 }
 
+/* Mensaje del sistema */
 .chat-message.system {
   background-color: #f0f0f0;
 }
 
+/* ========== 5. METADATOS DE MENSAJE (usuario y hora) ========== */
 .chat-meta {
   font-size: 0.75rem;
   color: #444;
@@ -70,6 +90,25 @@
   border-radius: 50%;
 }
 
+/* ========== 6. INPUT DE MENSAJE Y BOTÓN DE ENVÍO ========== */
+.message-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+/* Input de texto para mensaje */
+.message-input-wrapper input[type="text"],
+#message {
+  width: 90%;
+  max-width: 600px;
+  padding: 10px;
+  font-size: 16px;
+}
+
+/* ========== 7. BOTONES DE ACCIÓN GENERALES ========== */
 .btn-chat {
   display: inline-flex;
   align-items: center;
@@ -83,18 +122,52 @@
   background-color: #f0f0f0;
 }
 
-.btn-chat:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
+/* Iconos dentro de los botones */
 .btn-chat img {
   width: 20px;
   height: 20px;
   vertical-align: middle;
 }
 
-/* Spinner mientras conecta */
+/* Botones deshabilitados */
+.btn-chat:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Botón Enviar */
+.btn-send {
+  margin-top: 1rem;
+  background-color: #e1f5fe;
+  border: 1px solid #81d4fa;
+  color: #0277bd;
+  padding: 10px 20px;
+}
+
+.btn-send:hover {
+  background-color: #b3e5fc;
+}
+
+/* Botón Salir del Chat */
+.btn-logout {
+  margin-top: 1rem;
+  background-color: #ffeaea;
+  border: 1px solid #cc0000;
+  color: #cc0000;
+}
+
+.btn-logout:hover {
+  background-color: #ffd6d6;
+}
+
+/* Contenedor para centrar el botón logout */
+.logout-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+/* ========== 8. SPINNER DE CONEXIÓN ========== */
 .spinner {
   width: 18px;
   height: 18px;
@@ -111,52 +184,7 @@
   }
 }
 
-.btn-logout {
-  margin-top: 1rem;
-  background-color: #ffeaea;
-  border: 1px solid #cc0000;
-  color: #cc0000;
-}
-
-.btn-logout:hover {
-  background-color: #ffd6d6;
-}
-
-.btn-send {
-  margin-top: 1rem;
-  background-color: #e1f5fe;
-  border: 1px solid #81d4fa;
-  color: #0277bd;
-}
-
-.btn-send:hover {
-  background-color: #b3e5fc;
-}
-
-/* 📱 Estilos responsive y ajustes para imágenes */
-
-.chat-login img {
-  max-width: 100%;
-  height: auto;
-  margin-bottom: 1rem;
-}
-
-.chat-login img[alt="Logo de Universidad Latina"] {
-  max-width: 250px; /* Logo principal más pequeño */
-}
-
-.chat-login img[alt="talkao logo"] {
-  max-width: 180px; /* Talkao más pequeño */
-}
-
-/* 🧠 Asegurar que el contenedor responda al tamaño */
-.chat-container {
-  padding: 1rem;
-  max-width: 800px;
-  margin: auto;
-}
-
-/* 📱 Estilo responsive adicional para dispositivos pequeños */
+/* ========== 9. RESPONSIVE DESIGN PARA MÓVILES ========== */
 @media (max-width: 600px) {
   .chat-login h1,
   .chat-login p,
@@ -178,5 +206,9 @@
 
   .chat-box {
     height: 200px;
+  }
+
+  .btn-send {
+    width: 100%;
   }
 }
