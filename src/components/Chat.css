@@ -1,16 +1,20 @@
-/* ========== 1. CONTENEDOR PRINCIPAL ========== */
+/* ======================================================
+   1. CONTENEDOR PRINCIPAL
+   ====================================================== */
 .chat-container {
   padding: 1rem;
   max-width: 800px;
-  margin: auto; /* Centra horizontalmente */
+  margin: auto; /* Centrado horizontal */
 }
 
-/* ========== 2. LOGIN (pantalla inicial) ========== */
+/* ======================================================
+   2. LOGIN (pantalla inicial)
+   ====================================================== */
 .chat-login {
   text-align: center;
 }
 
-/* Lista de integrantes centrada pero alineada a la izquierda */
+/* Lista de integrantes: centrada pero alineada a la izquierda */
 .chat-login ul {
   display: inline-block;
   text-align: left;
@@ -18,23 +22,47 @@
   list-style-type: disc;
 }
 
-/* Imágenes generales del login */
+/* ======================================================
+   3. IMÁGENES Y LOGOS
+   ====================================================== */
+
+/* Imagen general: se adapta al ancho disponible */
 .chat-login img {
   max-width: 100%;
   height: auto;
   margin-bottom: 1rem;
 }
 
-/* Tamaños máximos específicos para los logos */
-.chat-login img[alt="Logo de Universidad Latina"] {
-  max-width: 600px;
+/* Logo de Universidad Latina */
+.logo-ulatina {
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  display: block;
+  margin: 0 auto 1rem auto;
 }
 
-.chat-login img[alt="talkao logo"] {
-  max-width: 300px;
+/* Logo de Talkao (50% más pequeño que el de la U) */
+.logo-talkao {
+  width: 50%;
+  max-width: 150px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
 }
 
-/* ========== 3. CHATBOX CONTENEDOR DE MENSAJES ========== */
+/* Íconos de botones */
+.icon-login,
+.icon-send,
+.icon-logout {
+  width: 20px;
+  height: 20px;
+  vertical-align: baseline;
+}
+
+/* ======================================================
+   4. CHATBOX - CONTENEDOR DE MENSAJES
+   ====================================================== */
 .chat-box {
   border: 1px solid #ccc;
   padding: 1rem;
@@ -43,7 +71,9 @@
   margin-bottom: 1rem;
 }
 
-/* ========== 4. MENSAJES DEL CHAT ========== */
+/* ======================================================
+   5. MENSAJES DEL CHAT
+   ====================================================== */
 .chat-message {
   margin-bottom: 1rem;
   padding: 0.5rem 1rem;
@@ -53,19 +83,21 @@
   text-align: left;
 }
 
-/* Mensaje del usuario actual */
+/* Mensaje enviado por el usuario actual */
 .chat-message.me {
   margin-left: auto;
   background-color: #d1e7dd;
   text-align: right;
 }
 
-/* Mensaje del sistema */
+/* Mensaje del sistema (tipo bienvenida) */
 .chat-message.system {
   background-color: #f0f0f0;
 }
 
-/* ========== 5. METADATOS DE MENSAJE (usuario y hora) ========== */
+/* ======================================================
+   6. METADATOS DE MENSAJE (usuario y hora)
+   ====================================================== */
 .chat-meta {
   font-size: 0.75rem;
   color: #444;
@@ -83,6 +115,7 @@
   justify-content: flex-end;
 }
 
+/* Indicador de color por usuario (si se usa) */
 .chat-color-dot {
   display: inline-block;
   width: 12px;
@@ -90,7 +123,11 @@
   border-radius: 50%;
 }
 
-/* ========== 6. INPUT DE MENSAJE Y BOTÓN DE ENVÍO ========== */
+/* ======================================================
+   7. INPUT DE MENSAJE Y BOTONES DE ACCIÓN
+   ====================================================== */
+
+/* Contenedor que agrupa input y botón enviar */
 .message-input-wrapper {
   display: flex;
   flex-direction: column;
@@ -99,7 +136,7 @@
   margin-top: 1rem;
 }
 
-/* Input de texto para mensaje */
+/* Input de mensaje */
 .message-input-wrapper input[type="text"],
 #message {
   width: 90%;
@@ -108,7 +145,7 @@
   font-size: 16px;
 }
 
-/* ========== 7. BOTONES DE ACCIÓN GENERALES ========== */
+/* Botones base */
 .btn-chat {
   display: inline-flex;
   align-items: center;
@@ -122,14 +159,7 @@
   background-color: #f0f0f0;
 }
 
-/* Iconos dentro de los botones */
-.btn-chat img {
-  width: 20px;
-  height: 20px;
-  vertical-align: middle;
-}
-
-/* Botones deshabilitados */
+/* Botón deshabilitado */
 .btn-chat:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -148,7 +178,7 @@
   background-color: #b3e5fc;
 }
 
-/* Botón Salir del Chat */
+/* Botón Salir */
 .btn-logout {
   margin-top: 1rem;
   background-color: #ffeaea;
@@ -160,14 +190,16 @@
   background-color: #ffd6d6;
 }
 
-/* Contenedor para centrar el botón logout */
+/* Centrar el botón logout */
 .logout-wrapper {
   display: flex;
   justify-content: center;
   margin-top: 1.5rem;
 }
 
-/* ========== 8. SPINNER DE CONEXIÓN ========== */
+/* ======================================================
+   8. SPINNER DE CONEXIÓN
+   ====================================================== */
 .spinner {
   width: 18px;
   height: 18px;
@@ -184,8 +216,11 @@
   }
 }
 
-/* ========== 9. RESPONSIVE DESIGN PARA MÓVILES ========== */
+/* ======================================================
+   9. RESPONSIVE DESIGN - MÓVILES
+   ====================================================== */
 @media (max-width: 600px) {
+  /* Escala texto en pantallas pequeñas */
   .chat-login h1,
   .chat-login p,
   .chat-login h3,
@@ -194,38 +229,35 @@
     font-size: 90%;
   }
 
+  /* Botones más compactos */
   .btn-chat {
     font-size: 14px;
     padding: 6px 10px;
   }
 
+  /* Input y botones más pequeños */
   input[type="text"],
   input[type="button"] {
     font-size: 14px;
   }
 
+  /* Chatbox más corto */
   .chat-box {
     height: 200px;
   }
 
+  /* Botón enviar ocupa todo el ancho */
   .btn-send {
     width: 100%;
   }
-}
 
-/* Logos - controla la escala y el comportamiento */
-.logo-ulatina {
-  width: 100%;
-  max-width: 500px; /* tamaño máximo en pantallas grandes */
-  height: auto;
-  display: block;
-  margin: 0 auto 1rem auto;
-}
+  /* Logo ULatina ajustado */
+  .logo-ulatina {
+    max-width: 300px;
+  }
 
-.logo-talkao {
-  max-width: 250px;
-  width: 100%;
-  height: auto;
-  display: block;
-  margin: 0 auto;
+  /* Logo Talkao aún más pequeño */
+  .logo-talkao {
+    max-width: 150px;
+  }
 }

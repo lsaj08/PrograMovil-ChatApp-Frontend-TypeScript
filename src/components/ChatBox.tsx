@@ -88,7 +88,7 @@ const ChatBox: React.FC = () => {
           <p>
             20252-002-BISI05 <br />
             Profesor: Jose Arturo Gracia Rodriguez <br />
-            Proyecto Final - Aplicación de Chat <br />
+            Proyecto Final - Aplicación de Chat <br /><br />
             Nombre del App: Talkao <br /><br />
             <img src="/Talkao.png" alt="Talkao logo" className="logo-talkao" />
           </p>
@@ -100,7 +100,6 @@ const ChatBox: React.FC = () => {
             <li>Gabriel Barrios Benavides</li>
             <li>Erick Villegas Aragon</li>
           </ul>
-
           <h2>Ingresa tu nombre de usuario:</h2>
           <input
             id="username"
@@ -126,7 +125,7 @@ const ChatBox: React.FC = () => {
             ) : (
               <>
                 Entrar al chat
-                <img src="/login.png" alt="icono login" />
+                <img src="/login.png" alt="icono login" className="icon-login" />
               </>
             )}
           </button>
@@ -162,7 +161,7 @@ const ChatBox: React.FC = () => {
               type="button"
             >
               Enviar
-              <img src="/sent.png" alt="icono enviar" />
+              <img src="/send.png" alt="icono enviar" className="icon-send" />
             </button>
           </div>
 
@@ -179,7 +178,7 @@ const ChatBox: React.FC = () => {
               }}
               type="button"
             >
-              <img src="/logout.png" alt="icono logout" />
+              <img src="/logout.png" alt="icono logout" className="icon-logout" />
               Salir del chat
             </button>
           </div>
