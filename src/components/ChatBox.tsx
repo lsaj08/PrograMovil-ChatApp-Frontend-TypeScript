@@ -86,7 +86,7 @@ const ChatBox: React.FC = () => {
           <img src="/logo_ulatina.png" alt="Universidad Latina logo" className="logo-ulatina"/>
           <h1>Curso: Programación Web</h1>
           <p>
-            20252-002-BISI05 <br />
+            20253-002-BISI10 <br />
             Profesor: Jose Arturo Gracia Rodriguez <br />
             Proyecto Final - Aplicación de Chat <br /><br />
             Nombre del App: Talkao <br /><br />
@@ -97,8 +97,8 @@ const ChatBox: React.FC = () => {
             <h3>Integrantes</h3>
             <li>Leiner Arce Jimenez</li>
             <li>Diego Campos Borbon</li>
-            <li>Gabriel Barrios Benavides</li>
-            <li>Erick Villegas Aragon</li>
+            <li>Victor Esteban Mena Mora</li>
+            <li>Tracy Michelle Ramos Villegas</li>
           </ul>
           <h2>Ingresa tu nombre de usuario:</h2>
           <input
