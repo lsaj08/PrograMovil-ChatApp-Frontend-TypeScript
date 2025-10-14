@@ -32,7 +32,7 @@ const ChatBox: React.FC = () => {
     setIsConnecting(true);
 
     const newConnection = new signalR.HubConnectionBuilder()
-      .withUrl(`https://prograweb-chatapp-backend-net9.azurewebsites.net/chat?username=${encodeURIComponent(username)}`)
+      .withUrl(`https://programovil-chatapp-backend-net9.azurewebsites.net/chat?username=${encodeURIComponent(username)}`)
       .withAutomaticReconnect()
       .build();
 
