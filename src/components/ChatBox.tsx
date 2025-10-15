@@ -84,7 +84,7 @@ const ChatBox: React.FC = () => {
       {!isConnected ? (
         <div className="chat-login">
           <img src="/logo_ulatina.png" alt="Universidad Latina logo" className="logo-ulatina"/>
-          <h1>Curso: Programación Web</h1>
+          <h1>Curso: Programación Movil</h1>
           <p>
             20253-002-BISI10 <br />
             Profesor: Jose Arturo Gracia Rodriguez <br />
