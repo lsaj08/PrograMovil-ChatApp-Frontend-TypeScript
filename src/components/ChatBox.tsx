@@ -94,7 +94,7 @@ const ChatBox: React.FC = () => {
           </p>
 
           <ul>
-            <h3>Integrantes</h3>
+            <h3>Integrantes:</h3>
             <li>Leiner Arce Jimenez</li>
             <li>Diego Campos Borbon</li>
             <li>Victor Esteban Mena Mora</li>
