@@ -299,7 +299,7 @@ const ChatBox: React.FC = () => {
             20253-002-BISI10 <br />
             Profesor: Jose Arturo Gracia Rodriguez <br />
             Proyecto Final - Aplicación de Chat <br /><br />
-            Nombre del App: Talkao <br /><br />
+            Nombre del App: Talkao v4.2<br /><br />
             <img src="/Talkao.png" alt="Talkao logo" className="logo-talkao" />
           </p>
 
