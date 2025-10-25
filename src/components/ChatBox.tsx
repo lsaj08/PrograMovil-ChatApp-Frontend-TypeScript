@@ -286,6 +286,14 @@ const ChatBox: React.FC = () => {
         <div className="chat-login">
           <img src="/logo_ulatina.png" alt="Universidad Latina logo" className="logo-ulatina" />
           <h1>Curso: Programación Móvil</h1>
+          <h1>Curso: Programación Movil</h1>
+          <p>
+            20253-002-BISI10 <br />
+            Profesor: Jose Arturo Gracia Rodriguez <br />
+            Proyecto Final - Aplicación de Chat <br /><br />
+            Nombre del App: Talkao v4.2<br /><br />
+            <img src="/Talkao.png" alt="Talkao logo" className="logo-talkao" />
+          </p>
 
           <ul>
             <h3>Integrantes:</h3>
