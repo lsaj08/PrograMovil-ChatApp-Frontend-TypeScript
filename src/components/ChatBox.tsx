@@ -300,6 +300,7 @@ const ChatBox: React.FC = () => {
             Profesor: Jose Arturo Gracia Rodriguez <br />
             Proyecto Final - Aplicación de Chat <br /><br />
             Nombre del App: Talkao v4.2<br /><br />
+            New GitHub deployment: <a href="https://github.com/your-repo/talkao" target="_blank">https://github.com/your-repo/talkao</a><br /><br />
             <img src="/Talkao.png" alt="Talkao logo" className="logo-talkao" />
           </p>
 
