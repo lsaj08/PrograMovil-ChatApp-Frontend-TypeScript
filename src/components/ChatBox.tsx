@@ -155,11 +155,7 @@ const ChatBox: React.FC = () => {
 
       // 2) Crear conexión
       const newConnection = new signalR.HubConnectionBuilder()
-        .withUrl(
-          `https://programovil-chatapp-backend-net9.azurewebsites.net/chat?username=${encodeURIComponent(
-            username
-          )}`
-        )
+        .withUrl(`${process.env.REACT_APP_BACKEND_URL}/chat?username=${encodeURIComponent(username)}`)
         .withAutomaticReconnect()
         .build();
 
