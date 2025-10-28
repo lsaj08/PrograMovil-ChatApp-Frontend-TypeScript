@@ -246,6 +246,33 @@ const ChatBox: React.FC = () => {
     } finally {
       setIsConnecting(false);
     }
+
+    // Ayuda para esperar hasta que una condición se cumpla
+const waitFor = (cond: () => boolean, timeoutMs = 4000, poll = 100) =>
+  new Promise<void>((resolve, reject) => {
+    const start = Date.now();
+    const i = setInterval(() => {
+      if (cond()) { clearInterval(i); resolve(); }
+      else if (Date.now() - start > timeoutMs) { clearInterval(i); reject(new Error("timeout")); }
+    }, poll);
+  });
+
+// Reenviar mi clave pública
+async function shareMyPublicKey(conn: signalR.HubConnection, username: string) {
+  await waitFor(() => !!myPubB64Ref.current, 4000).catch(() => {});
+  if (!myPubB64Ref.current) {
+    console.warn("⚠️ Aún no tengo mi clave pública lista para compartir.");
+    return;
+  }
+  const pubDto: PublicKeyDTO = {
+    username: username.trim(),
+    algorithm: "EC-P256-RAW",
+    publicKeyB64: myPubB64Ref.current,
+  };
+  console.log("📮 Enviando mi clave pública…");
+  await conn.invoke("SharePublicKey", JSON.stringify(pubDto));
+}
+
   };
 
   // === Enviar (E2EE): un payload por peer conocido ===
@@ -295,8 +322,8 @@ const ChatBox: React.FC = () => {
             20253-002-BISI10 <br />
             Profesor: Jose Arturo Gracia Rodriguez <br />
             Proyecto Final - Aplicación de Chat <br /><br />
-            Nombre del App: Talkao v4.2<br /><br />
-            New GitHub deployment<br /><br />
+            Nombre del App: Talkao v4.3<br /><br />
+            .env variables<br /><br />
             <img src="/Talkao.png" alt="Talkao logo" className="logo-talkao" />
           </p>
 
