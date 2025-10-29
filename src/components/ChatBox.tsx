@@ -438,7 +438,7 @@ const ChatBox: React.FC = () => {
             >
               {showRoster ? "Ocultar" : "Ver"}
             </button>
-          </div>
+          </div><br />
 
           {showRoster && (
             <div className="roster-popover" style={{
