@@ -17,14 +17,14 @@ type HubConn = signalR.HubConnection | null;
 type PublicKeyDTO = {
   username: string;
   algorithm: "EC-P256-RAW";
-  publicKeyB64: string; // EC P-256 uncompressed (65 bytes) en Base64
+  publicKeyB64: string; // EC P-256 uncompressed (65 bytes) Base64
 };
 
 type CipherDTO = {
   from: string;
-  to: string;      // username destino
-  iv: string;      // base64(12 bytes)
-  cipher: string;  // base64(ct||tag)
+  to: string;     // username destino
+  iv: string;     // base64(12 bytes)
+  cipher: string; // base64(ct||tag)
 };
 
 /* =======================
@@ -101,7 +101,7 @@ async function decryptAesGcm(
 }
 
 /* =======================
-   Helpers E2EE
+   Helpers E2EE / flujo
 ======================= */
 const waitFor = (cond: () => boolean, timeoutMs = 4000, poll = 100) =>
   new Promise<void>((resolve, reject) => {
@@ -142,6 +142,10 @@ const ChatBox: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(0);
+
+  // para actualizar UI cuando cambia el mapa de claves
+  const [peerKeyCount, setPeerKeyCount] = useState(0);
+
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // E2EE refs
@@ -160,26 +164,49 @@ const ChatBox: React.FC = () => {
     conn.off("UpdateUserCount");
     conn.off("ReceivePublicKey");
     conn.off("ReceiveCipher");
+    conn.off("UserPresenceChanged"); // nuevo evento opcional del backend
 
-    // Sistema / bienvenida
+    // Sistema / bienvenida (y limpieza best-effort al desconectar)
     conn.on("ReceiveMessage", (data: any) => {
       const { user, message, fechaHoraCostaRica } = data || {};
-      if (typeof message === "string") {
+      const msg = typeof message === "string" ? message : "";
+      if (msg) {
+        // limpieza best-effort por mensaje de sistema
+        const m = msg.match(/^(.+?) se ha desconectado\.$/i);
+        if (m) {
+          const who = (m[1] || "").trim();
+          sharedKeysRef.current.delete(who);
+          setPeerKeyCount(sharedKeysRef.current.size);
+        }
+
         setMessages((prev) => [
           ...prev,
           {
             user: user ?? "Sistema",
-            message,
+            message: msg,
             timestamp: fechaHoraCostaRica ?? new Date().toISOString(),
           },
         ]);
       }
     });
 
-    // Re-envía mi pubkey cuando cambia el conteo (entra/sale alguien)
+    // Contador y re-publicación de mi clave
     conn.on("UpdateUserCount", async (count: number) => {
       setOnlineUsers(count ?? 0);
       try { await shareMyPublicKey(conn, me, myPubB64Ref); } catch {}
+    });
+
+    // Evento dedicado de presencia (recomendado en backend)
+    conn.on("UserPresenceChanged", (dto: { username: string; isOnline: boolean }) => {
+      const who = (dto?.username || "").trim();
+      if (!who) return;
+      if (!dto.isOnline) {
+        sharedKeysRef.current.delete(who);
+        setPeerKeyCount(sharedKeysRef.current.size);
+      } else {
+        // si alguien entra, yo reenvío mi pubkey (por si no me oyó antes)
+        shareMyPublicKey(conn, me, myPubB64Ref).catch(() => {});
+      }
     });
 
     // E2EE: recibir clave pública del peer
@@ -206,6 +233,7 @@ const ChatBox: React.FC = () => {
 
         const peerName = (dto.username || "").trim();
         sharedKeysRef.current.set(peerName, aesKey);
+        setPeerKeyCount(sharedKeysRef.current.size);
 
         console.log("🔐 Canal derivado con:", peerName);
         console.log("Claves conocidas:", Array.from(sharedKeysRef.current.keys()));
@@ -256,7 +284,7 @@ const ChatBox: React.FC = () => {
         .withAutomaticReconnect()
         .build();
 
-      // Handlers + eventos de ciclo
+      // Handlers + ciclo de vida
       registerHandlers(newConnection, me);
       newConnection.onreconnected(async () => { try { await shareMyPublicKey(newConnection, me, myPubB64Ref); } catch {} });
       newConnection.onclose(() => {
@@ -279,43 +307,37 @@ const ChatBox: React.FC = () => {
     }
   };
 
-  // Enviar (E2EE) a todos los peers con clave derivada
+  // Enviar (E2EE) a todos los peers con clave derivada + ECO LOCAL
   const sendMessage = async () => {
     if (!connection || !message) return;
 
-    const pairs = Array.from(sharedKeysRef.current.entries());
-    console.log("🧩 PARES DISPONIBLES AL ENVIAR:", pairs.map(([k]) => k));
-    if (pairs.length === 0) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          user: "Sistema",
-          message: "Aún no hay canal cifrado con otros usuarios. Espera a que recibas claves públicas.",
-          timestamp: new Date().toISOString(),
-        },
-      ]);
-      return;
-    }
+    const canSend = peerKeyCount > 0 && onlineUsers >= 2;
+    if (!canSend) return;
 
     try {
       const me = username.trim();
+      const pairs = Array.from(sharedKeysRef.current.entries());
+
       for (const [peerRaw, key] of pairs) {
         const peer = (peerRaw || "").trim();
         const { ivB64, ctB64 } = await encryptAesGcm(key, message, me);
         const payload: CipherDTO = { from: me, to: peer, iv: ivB64, cipher: ctB64 };
         await connection.invoke("SendCipher", JSON.stringify(payload));
       }
-      // 👇 eco local (solo en tu UI)
-      setMessages(prev => [...prev, {
-        user: me,
-        message,
-        timestamp: new Date().toISOString()
-      }]);
+
+      // ECO LOCAL (solo una vez)
+      setMessages((prev) => [
+        ...prev,
+        { user: me, message, timestamp: new Date().toISOString() },
+      ]);
+
       setMessage("");
     } catch (e) {
       console.error("Error al enviar cifrado:", e);
     }
   };
+
+  const canSend = peerKeyCount > 0 && onlineUsers >= 2;
 
   // Render
   return (
@@ -328,8 +350,8 @@ const ChatBox: React.FC = () => {
             20253-002-BISI10 <br />
             Profesor: Jose Arturo Gracia Rodriguez <br />
             Proyecto Final - Aplicación de Chat <br /><br />
-            Nombre del App: Talkao v4.4<br /><br />
-            E2EE Encryption<br /><br />
+            Nombre del App: Talkao v5<br /><br />
+            Feature Update: E2EE (Cifrado de Extremo a Extremo)<br /><br />
             <img src="/Talkao.png" alt="Talkao logo" className="logo-talkao" />
           </p>
 
@@ -369,6 +391,12 @@ const ChatBox: React.FC = () => {
           <h1>Bienvenido, {username}</h1>
           <h3>Usuarios en línea: {onlineUsers}</h3>
 
+          {!canSend && (
+            <div className="banner-info">
+              Aún no hay canal cifrado — se habilitará al conectarse otra persona.
+            </div>
+          )}
+
           <div className="chat-box">
             {messages.map((msg, idx) => (
               <ChatMessageItem key={idx} msg={msg} username={username} />
@@ -382,11 +410,17 @@ const ChatBox: React.FC = () => {
               name="message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              onKeyDown={(e) => e.key === "Enter" && canSend && sendMessage()}
               placeholder="Escribe un mensaje..."
               autoComplete="off"
             />
-            <button onClick={sendMessage} className="btn-chat btn-send" type="button">
+            <button
+              onClick={sendMessage}
+              className="btn-chat btn-send"
+              type="button"
+              disabled={!canSend}
+              title={!canSend ? "Espera a que haya otra persona conectada para cifrar" : ""}
+            >
               Enviar <img src="/send.png" alt="icono enviar" className="icon-send" />
             </button>
           </div>
@@ -401,6 +435,7 @@ const ChatBox: React.FC = () => {
                 setIsConnected(false);
                 setMessages([]);
                 sharedKeysRef.current.clear();
+                setPeerKeyCount(0);
                 myKeysRef.current = null;
                 myPubB64Ref.current = "";
               }}
