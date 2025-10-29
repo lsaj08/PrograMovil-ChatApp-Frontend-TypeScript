@@ -181,13 +181,6 @@ const ChatBox: React.FC = () => {
       const { user, message, fechaHoraCostaRica } = data || {};
       const msg = typeof message === "string" ? message : "";
       if (msg) {
-        const m = msg.match(/^(.+?) se ha desconectado\.$/i);
-        if (m) {
-          const who = (m[1] || "").trim();
-          sharedKeysRef.current.delete(who);
-          setPeerKeyCount(sharedKeysRef.current.size);
-        }
-
         setMessages((prev) => [
           ...prev,
           {
@@ -203,6 +196,11 @@ const ChatBox: React.FC = () => {
       setOnlineUsers(count ?? 0);
       // re-publicar mi pubkey por si alguien nuevo no me escuchó
       try { await shareMyPublicKey(conn, me, myPubB64Ref); } catch {}
+
+        if ((count ?? 0) <= 1) {
+          sharedKeysRef.current.clear();
+          setPeerKeyCount(0);
+        }
     });
 
     // Snapshot enviado por el backend al conectar
@@ -222,12 +220,10 @@ const ChatBox: React.FC = () => {
         return normalizeRoster(Array.from(set), me);
       });
 
-      if (dto.isOnline) {
-        shareMyPublicKey(conn, me, myPubB64Ref).catch(() => {});
-      } else {
-        sharedKeysRef.current.delete(who);
-        setPeerKeyCount(sharedKeysRef.current.size);
-      }
+        if (dto.isOnline) {
+          // Alguien entra: reenvío mi clave pública por si no me oyó
+          shareMyPublicKey(conn, me, myPubB64Ref).catch(() => {});
+        }
     });
 
     // E2EE: recibir clave pública del peer
@@ -391,8 +387,8 @@ const ChatBox: React.FC = () => {
             20253-002-BISI10 <br />
             Profesor: Jose Arturo Gracia Rodriguez <br />
             Proyecto Final - Aplicación de Chat <br /><br />
-            Nombre del App: Talkao v4.3<br /><br />
-            .env variables<br /><br />
+            Nombre del App: Talkao v5.3<br /><br />
+            Feature: E2EE (Cifrado de extremo a extremo)<br /><br />
             <img src="/Talkao.png" alt="Talkao logo" className="logo-talkao" />
           </p>
 
