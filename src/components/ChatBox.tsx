@@ -465,7 +465,7 @@ const ChatBox: React.FC = () => {
 
           {!canSend && (
             <div className="banner-info">
-              Aún no hay canal cifrado — se habilitará al conectarse otra persona. <br />
+              Aún no hay canal cifrado — se habilitará al conectarse otra persona. <br /><br />
             </div>
           )}
 
