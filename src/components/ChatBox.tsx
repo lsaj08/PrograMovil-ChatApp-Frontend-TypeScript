@@ -305,6 +305,12 @@ const ChatBox: React.FC = () => {
         const payload: CipherDTO = { from: me, to: peer, iv: ivB64, cipher: ctB64 };
         await connection.invoke("SendCipher", JSON.stringify(payload));
       }
+      // 👇 eco local (solo en tu UI)
+      setMessages(prev => [...prev, {
+        user: me,
+        message,
+        timestamp: new Date().toISOString()
+      }]);
       setMessage("");
     } catch (e) {
       console.error("Error al enviar cifrado:", e);
