@@ -119,7 +119,7 @@ async function shareMyPublicKey(
 ) {
   await waitFor(() => !!myPubB64Ref.current, 4000).catch(() => {});
   if (!myPubB64Ref.current) {
-    console.warn("⚠️ Aún no tengo mi clave pública lista para compartir.");
+    console.warn("Aún no tengo mi clave pública lista para compartir.");
     return;
   }
   const pubDto: PublicKeyDTO = {
@@ -127,7 +127,6 @@ async function shareMyPublicKey(
     algorithm: "EC-P256-RAW",
     publicKeyB64: myPubB64Ref.current,
   };
-  console.log("📮 Enviando mi clave pública…");
   await conn.invoke("SharePublicKey", JSON.stringify(pubDto));
 }
 
@@ -146,6 +145,10 @@ const ChatBox: React.FC = () => {
   // para actualizar UI cuando cambia el mapa de claves
   const [peerKeyCount, setPeerKeyCount] = useState(0);
 
+  // roster: nombres conectados y visibilidad
+  const [onlineRoster, setOnlineRoster] = useState<string[]>([]);
+  const [showRoster, setShowRoster] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // E2EE refs
@@ -158,20 +161,26 @@ const ChatBox: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Registrar handlers de hub (limpiando duplicados)
+  const normalizeRoster = (list: string[], me: string) => {
+    const clean = Array.from(
+      new Set((list || []).map(s => (s || "").trim()).filter(Boolean))
+    ).sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+    return clean;
+  };
+
   function registerHandlers(conn: signalR.HubConnection, me: string) {
     conn.off("ReceiveMessage");
     conn.off("UpdateUserCount");
     conn.off("ReceivePublicKey");
     conn.off("ReceiveCipher");
-    conn.off("UserPresenceChanged"); // nuevo evento opcional del backend
+    conn.off("UserPresenceChanged");
+    conn.off("OnlineUsersSnapshot");
 
-    // Sistema / bienvenida (y limpieza best-effort al desconectar)
+    // Sistema / bienvenida. También limpiamos claves por mensaje de desconexión (best-effort).
     conn.on("ReceiveMessage", (data: any) => {
       const { user, message, fechaHoraCostaRica } = data || {};
       const msg = typeof message === "string" ? message : "";
       if (msg) {
-        // limpieza best-effort por mensaje de sistema
         const m = msg.match(/^(.+?) se ha desconectado\.$/i);
         if (m) {
           const who = (m[1] || "").trim();
@@ -190,22 +199,34 @@ const ChatBox: React.FC = () => {
       }
     });
 
-    // Contador y re-publicación de mi clave
     conn.on("UpdateUserCount", async (count: number) => {
       setOnlineUsers(count ?? 0);
+      // re-publicar mi pubkey por si alguien nuevo no me escuchó
       try { await shareMyPublicKey(conn, me, myPubB64Ref); } catch {}
     });
 
-    // Evento dedicado de presencia (recomendado en backend)
+    // Snapshot enviado por el backend al conectar
+    conn.on("OnlineUsersSnapshot", (list: string[]) => {
+      setOnlineRoster(normalizeRoster(list, me));
+    });
+
+    // Presencia: agregar o remover del roster, y re-publicar mi pubkey si alguien entra
     conn.on("UserPresenceChanged", (dto: { username: string; isOnline: boolean }) => {
       const who = (dto?.username || "").trim();
       if (!who) return;
-      if (!dto.isOnline) {
+
+      setOnlineRoster(prev => {
+        const set = new Set(prev);
+        if (dto.isOnline) set.add(who);
+        else set.delete(who);
+        return normalizeRoster(Array.from(set), me);
+      });
+
+      if (dto.isOnline) {
+        shareMyPublicKey(conn, me, myPubB64Ref).catch(() => {});
+      } else {
         sharedKeysRef.current.delete(who);
         setPeerKeyCount(sharedKeysRef.current.size);
-      } else {
-        // si alguien entra, yo reenvío mi pubkey (por si no me oyó antes)
-        shareMyPublicKey(conn, me, myPubB64Ref).catch(() => {});
       }
     });
 
@@ -224,7 +245,7 @@ const ChatBox: React.FC = () => {
         }
         const myPriv = myKeysRef.current?.privateKey;
         if (!myPriv) {
-          console.warn("⚠️ No tengo privada aún; no puedo derivar AES con", dto.username);
+          console.warn("No tengo privada aún; no puedo derivar AES con", dto.username);
           return;
         }
 
@@ -235,8 +256,7 @@ const ChatBox: React.FC = () => {
         sharedKeysRef.current.set(peerName, aesKey);
         setPeerKeyCount(sharedKeysRef.current.size);
 
-        console.log("🔐 Canal derivado con:", peerName);
-        console.log("Claves conocidas:", Array.from(sharedKeysRef.current.keys()));
+        // console.log("Canal derivado con:", peerName);
       } catch (e) {
         console.error("Error en ReceivePublicKey:", e);
       }
@@ -263,7 +283,6 @@ const ChatBox: React.FC = () => {
     });
   }
 
-  // Conectar
   const startConnection = async () => {
     if (!username || connection || isConnecting) return;
     setIsConnecting(true);
@@ -277,29 +296,41 @@ const ChatBox: React.FC = () => {
 
       // 2) Conexión
       const baseUrl = (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "");
-      console.log("[Hub URL]", `${baseUrl}/chat?username=${encodeURIComponent(me)}`);
-
       const newConnection = new signalR.HubConnectionBuilder()
         .withUrl(`${baseUrl}/chat?username=${encodeURIComponent(me)}`)
         .withAutomaticReconnect()
         .build();
 
-      // Handlers + ciclo de vida
       registerHandlers(newConnection, me);
-      newConnection.onreconnected(async () => { try { await shareMyPublicKey(newConnection, me, myPubB64Ref); } catch {} });
+
+      newConnection.onreconnected(async () => {
+        try { await shareMyPublicKey(newConnection, me, myPubB64Ref); } catch {}
+      });
+
       newConnection.onclose(() => {
         setMessages((prev) => [
           ...prev,
           { user: "Sistema", message: "Conexión cerrada.", timestamp: new Date().toISOString() },
         ]);
+        // Limpieza de llaves al cerrar
+        sharedKeysRef.current.clear();
+        setPeerKeyCount(0);
+        myKeysRef.current = null;
+        myPubB64Ref.current = "";
       });
 
-      // 3) Start + publicar mi pubkey
       await newConnection.start();
       setConnection(newConnection);
       setIsConnected(true);
 
+      // 3) Publicar mi pubkey
       await shareMyPublicKey(newConnection, me, myPubB64Ref);
+
+      // 4) Snapshot inicial de usuarios
+      try {
+        const list = await newConnection.invoke<string[]>("GetOnlineUsers");
+        setOnlineRoster(normalizeRoster(list, me));
+      } catch {}
     } catch (e) {
       console.error("Error al conectar con SignalR:", e);
     } finally {
@@ -325,7 +356,7 @@ const ChatBox: React.FC = () => {
         await connection.invoke("SendCipher", JSON.stringify(payload));
       }
 
-      // ECO LOCAL (solo una vez)
+      // Eco local (solo en tu UI)
       setMessages((prev) => [
         ...prev,
         { user: me, message, timestamp: new Date().toISOString() },
@@ -339,6 +370,16 @@ const ChatBox: React.FC = () => {
 
   const canSend = peerKeyCount > 0 && onlineUsers >= 2;
 
+  const toggleRoster = async () => {
+    setShowRoster((v) => !v);
+    try {
+      if (connection && connection.state === signalR.HubConnectionState.Connected) {
+        const list = await connection.invoke<string[]>("GetOnlineUsers");
+        setOnlineRoster(normalizeRoster(list, username.trim()));
+      }
+    } catch { /* silencioso */ }
+  };
+
   // Render
   return (
     <div className="chat-container">
@@ -350,8 +391,8 @@ const ChatBox: React.FC = () => {
             20253-002-BISI10 <br />
             Profesor: Jose Arturo Gracia Rodriguez <br />
             Proyecto Final - Aplicación de Chat <br /><br />
-            Nombre del App: Talkao v5<br /><br />
-            Feature Update: E2EE (Cifrado de Extremo a Extremo)<br /><br />
+            Nombre del App: Talkao v4.3<br /><br />
+            .env variables<br /><br />
             <img src="/Talkao.png" alt="Talkao logo" className="logo-talkao" />
           </p>
 
@@ -389,7 +430,42 @@ const ChatBox: React.FC = () => {
       ) : (
         <>
           <h1>Bienvenido, {username}</h1>
-          <h3>Usuarios en línea: {onlineUsers}</h3>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <h3 style={{ margin: 0 }}>Usuarios en línea: {onlineUsers}</h3>
+            <button
+              type="button"
+              className="btn-chat"
+              onClick={toggleRoster}
+              title="Ver usuarios conectados"
+              style={{ padding: "4px 10px" }}
+            >
+              {showRoster ? "Ocultar" : "Ver"}
+            </button>
+          </div>
+
+          {showRoster && (
+            <div className="roster-popover" style={{
+              margin: "8px 0 12px",
+              border: "1px solid #ddd",
+              borderRadius: 8,
+              padding: 10,
+              background: "#fff",
+              maxWidth: 360,
+            }}>
+              {onlineRoster.length === 0 ? (
+                <div style={{ color: "#666" }}>No hay usuarios conectados.</div>
+              ) : (
+                <ul style={{ margin: 0, paddingLeft: 18 }}>
+                  {onlineRoster.map((u) => (
+                    <li key={u}>
+                      {u === username.trim() ? `${u} (tú)` : u}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
 
           {!canSend && (
             <div className="banner-info">
@@ -438,6 +514,9 @@ const ChatBox: React.FC = () => {
                 setPeerKeyCount(0);
                 myKeysRef.current = null;
                 myPubB64Ref.current = "";
+                setOnlineRoster([]);
+                setShowRoster(false);
+                setOnlineUsers(0);
               }}
               type="button"
             >
