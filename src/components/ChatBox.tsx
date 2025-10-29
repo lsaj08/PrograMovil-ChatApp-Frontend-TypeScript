@@ -438,7 +438,7 @@ const ChatBox: React.FC = () => {
             >
               {showRoster ? "Ocultar" : "Ver"}
             </button>
-          </div><br />
+          </div>
 
           {showRoster && (
             <div className="roster-popover" style={{
@@ -465,7 +465,7 @@ const ChatBox: React.FC = () => {
 
           {!canSend && (
             <div className="banner-info">
-              Aún no hay canal cifrado — se habilitará al conectarse otra persona.
+              Aún no hay canal cifrado — se habilitará al conectarse otra persona. <br />
             </div>
           )}
 
